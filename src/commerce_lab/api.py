@@ -35,9 +35,12 @@ from commerce_lab.contracts import (
     OfferGetInput,
     Success,
 )
+from commerce_lab.creation_lookup_api import creation_lookup_router
 from commerce_lab.db import DatabaseNotReady, check_database_ready, database_url
 from commerce_lab.discovery import discovery_document
 from commerce_lab.feed import current_feed
+from commerce_lab.guarded_creation_api import guarded_creation_router
+from commerce_lab.guarded_lookup_api import guarded_lookup_router
 from commerce_lab.payment_sandbox import config_schema, handler_spec, instrument_schema
 from commerce_lab.persistent_catalog import PersistentCatalogReader
 from commerce_lab.request_observability import (
@@ -69,6 +72,7 @@ _PUBLIC_ERROR_CODES = {
     "IDEMPOTENCY_IN_FLIGHT": "idempotency_in_flight",
     "OFFER_NOT_FOUND": "invalid_item",
     "OUT_OF_STOCK": "out_of_stock",
+    "CHECKOUT_CREATION_UNRECOVERABLE": "creation_unrecoverable",
     "PAYMENT_DECLINED": "payment_declined",
 }
 
@@ -301,6 +305,11 @@ def require_acp_version(
                 "supported_versions": [ACP_VERSION],
             },
         )
+
+
+app.include_router(creation_lookup_router(trusted_context, require_acp_version))
+app.include_router(guarded_creation_router(trusted_context, require_acp_version))
+app.include_router(guarded_lookup_router(trusted_context, require_acp_version))
 
 
 def acp_checkout(
