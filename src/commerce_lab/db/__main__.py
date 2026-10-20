@@ -7,7 +7,7 @@ from uuid import uuid4
 from commerce_lab.checkout import CheckoutService
 from commerce_lab.context import issue_lab_session
 from commerce_lab.contracts import ExecutionContext
-from commerce_lab.db import migrate, seed, verify
+from commerce_lab.db import migrate, run_checkouts, seed, verify
 from commerce_lab.webhook_delivery import WebhookDispatcher
 
 
@@ -38,6 +38,8 @@ def main() -> None:
     update_parser.add_argument("order_id")
     dispatch_parser = subparsers.add_parser("webhook-dispatch")
     dispatch_parser.add_argument("--limit", type=int, default=1)
+    checkouts_parser = subparsers.add_parser("run-checkouts")
+    checkouts_parser.add_argument("run_id")
     arguments = parser.parse_args()
     if arguments.command == "migrate":
         result = migrate()
@@ -63,6 +65,8 @@ def main() -> None:
         result = CheckoutService(context).update_order_status(arguments.order_id)
     elif arguments.command == "webhook-dispatch":
         result = WebhookDispatcher().dispatch_due(limit=arguments.limit)
+    elif arguments.command == "run-checkouts":
+        result = run_checkouts(arguments.run_id)
     else:
         result = verify(arguments.run_id)
     print(json.dumps(_jsonable(result), ensure_ascii=False))
