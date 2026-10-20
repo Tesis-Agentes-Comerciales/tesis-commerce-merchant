@@ -56,6 +56,14 @@ no de una identidad elegida por el cliente. Token nuevo con mismo ámbito conser
 | 422 / error: invalid_request | Cuerpo o query inválidos. El error no refleja el cuerpo ni valores sensibles. |
 | 503 / error: lookup_unavailable | Error de autenticación contra DB, consulta, integridad o serialización. Nunca se convierte en not_found. |
 
+> **Actualización 2026-10-19 (PR #3, `fix/merchant-ci-integration`).** La integridad y la
+> serialización ya no responden 503. Una fila que no se puede verificar o representar
+> (`LookupIntegrityError`) responde **500 `history_invalid`**. Eso incluye un ámbito
+> discordante, una respuesta corrupta, un campo de credencial o un objeto no representable.
+> La corrupción no es transitoria: un 503 invitaba a reintentar sin fin. Los errores de
+> autenticación contra la DB y de consulta siguen siendo 503 `lookup_unavailable`. Ninguno
+> de los dos se convierte en not_found. La tabla conserva el contrato de 06D-A.
+
 Todas las variantes son modelos estrictos y versionados. Found/not_found/unrecoverable
 forman una unión discriminada por result. Los errores tienen modelo cerrado separado,
 con schema_version, result=error, code y request_id. Todas las respuestas de la ruta,
@@ -215,6 +223,11 @@ verificado. No reutilizar ni apuntar estos tests a una base operativa.
 | Creación aún no confirmada | Un POST explícito de fixture queda antes de commit; el lookup observa not_found. Tras liberar ese mismo commit, found. Prueba real de que not_found no acredita ausencia. |
 | Sin operaciones comerciales internas | Se prohíben los métodos de adaptador/servicio y constructor/catálogo durante lookup; found sigue funcionando. |
 | Read-only real | Probe de conexión consulta SHOW transaction_read_only dentro del SELECT: on. |
+
+> **Actualización 2026-10-19 (PR #3).** Desde ese PR, la fila «Respuesta corrupta o campo de
+> credencial inesperado» responde 500 `history_invalid`, también no reflectivo y nunca found
+> ni not_found. El error interno de autenticación o del lector sigue siendo 503.
+> `tests/test_history_integrity_api.py` cubre ambas ramas.
 
 Los snapshots comparan todas las tablas públicas, incluidos número de checkouts,
 estados, revisiones y columnas originales. La prueba concurrente solo repite consultas;
