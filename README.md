@@ -138,7 +138,10 @@ escribe en la base, así que use un PostgreSQL desechable y recién creado, no e
 desarrollo: la prueba de migraciones solo se ejecuta sobre una base vacía y por eso va primero.
 Las suites D17 rechazan cualquier clúster cuyo `data_directory` no sea
 `RECOVERY_TEST_CLUSTER` (el `PGDATA` de la imagen fijada). El CI ejecuta esta misma secuencia,
-en serie, contra su servicio PostgreSQL.
+en serie, contra su servicio PostgreSQL. Esa secuencia sustituye al antiguo runner Windows
+`tests/integration/guarded_cluster.py` (EC-MER-07B-A), que se retiró; la suite viva del Agent
+(`RUN_LIVE_STACK=1`, en `tests/integration` de ese repositorio) ejercita este Merchant por HTTP
+contra un PostgreSQL desechable en macOS y Linux.
 
 Las pruebas que actualizan, cancelan, completan o reescriben un checkout persistido, su Order o
 su evidencia de creación llevan el marker `mutates_checkout_state` (registrado en
