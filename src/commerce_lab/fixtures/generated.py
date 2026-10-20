@@ -289,7 +289,7 @@ def _snapshot() -> list[dict[str, Any]]:
     document = json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
     products: list[dict[str, Any]] = document.get("products", [])
     # Un producto sin foto descargada no entra al catálogo: una tarjeta vacía se ve peor que
-    # un catálogo más corto. Las fotos se traen con scripts/fetch_product_images.py.
+    # un catálogo más corto. Las fotos se traen con scripts/catalog/fetch_product_images.py.
     available = _downloaded_images()
     # Se exigen dos cosas: foto descargada y que no sea arte vectorial. Los SVG de Wikipedia
     # son siluetas de línea, no fotografías, y en una retícula de tienda se ven falsos.

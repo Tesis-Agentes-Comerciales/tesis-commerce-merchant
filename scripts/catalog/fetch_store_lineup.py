@@ -12,7 +12,7 @@ Solo se aceptan licencias que permiten redistribución con atribución. La atrib
 por la licencia queda registrada en el archivo de procedencia.
 
 Uso:
-    uv run python scripts/fetch_openverse_catalog.py
+    uv run python scripts/catalog/fetch_store_lineup.py
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ from typing import Any, Final
 from fetch_render_images import _download as _render_download
 from fetch_render_images import _urls as _render_urls
 
-ROOT: Final = Path(__file__).resolve().parents[1]
+ROOT: Final = Path(__file__).resolve().parents[2]
 SNAPSHOT: Final = ROOT / "src/commerce_lab/fixtures/catalog_snapshot.json"
 OUT_DIR: Final = ROOT / "assets/products"
 USER_AGENT: Final = "TesisCommerceCatalog/1.0 (Uniandes thesis; academic use)"

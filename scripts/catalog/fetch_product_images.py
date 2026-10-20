@@ -9,7 +9,7 @@ Las imágenes son de Wikimedia Commons, con licencias libres. Se escribe PROVENA
 archivo de origen de cada una para poder citarlas.
 
 Uso:
-    uv run python scripts/fetch_product_images.py
+    uv run python scripts/catalog/fetch_product_images.py
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Final
 
-ROOT: Final = Path(__file__).resolve().parents[1]
+ROOT: Final = Path(__file__).resolve().parents[2]
 SNAPSHOT: Final = ROOT / "src/commerce_lab/fixtures/catalog_snapshot.json"
 OUT_DIR: Final = ROOT / "assets/products"
 USER_AGENT: Final = "TesisCommerceCatalog/1.0 (Uniandes thesis; academic use)"
@@ -93,7 +93,7 @@ def main() -> None:
         "# Procedencia de las imágenes de producto",
         "",
         "Todas provienen de **Wikimedia Commons** y se descargaron una sola vez con",
-        "`scripts/fetch_product_images.py`. Cada archivo conserva la licencia libre de su",
+        "`scripts/catalog/fetch_product_images.py`. Cada archivo conserva la licencia libre de su",
         "original; la página del archivo en Commons documenta autoría y licencia exacta:",
         "",
         "    https://commons.wikimedia.org/wiki/File:<archivo de origen>",
