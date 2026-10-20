@@ -1,5 +1,3 @@
-import os
-
 import jwt
 import pytest
 from cryptography.hazmat.primitives import serialization
@@ -11,11 +9,6 @@ from commerce_lab.api import ap2_signer, app
 from commerce_lab.context import issue_lab_session
 from commerce_lab.db import migrate, seed
 from commerce_lab.fixtures import fresh_p0_offers
-
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1",
-    reason="requires the local synthetic PostgreSQL service",
-)
 
 
 @pytest.mark.mutates_checkout_state

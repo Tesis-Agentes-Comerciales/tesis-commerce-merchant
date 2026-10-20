@@ -37,7 +37,9 @@ packages = ["src/commerce_lab"]
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
 testpaths = ["tests"]
+# tests/conftest.py applies db to tests/integration; see docs/testing.md.
 markers = [
+  "db: needs the disposable PostgreSQL (tests/integration); skipped unless RUN_DB_INTEGRATION=1",
   "mutates_checkout_state: updates, cancels, completes or rewrites a persisted checkout, its order or creation evidence; deselect with -m 'not mutates_checkout_state'",
 ]
 
