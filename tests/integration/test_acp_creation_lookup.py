@@ -334,7 +334,7 @@ def test_canceled_checkout_does_not_change_historical_lookup(created):
 
 
 @pytest.mark.parametrize("damage", ["schema", "credential"])
-def test_corrupt_response_is_unavailable_never_found_or_rebuilt(created, damage):
+def test_corrupt_response_is_history_invalid_never_found_or_rebuilt(created, damage):
     run, headers, original = created
     damaged = (
         {**original, "status": "invalid-state"}
@@ -354,8 +354,8 @@ def test_corrupt_response_is_unavailable_never_found_or_rebuilt(created, damage)
         )
     before = snapshot()
     response = lookup(headers)
-    assert response.status_code == 503 and "do-not-expose" not in response.text
-    assert CreationLookupError.model_validate(response.json()).code == "lookup_unavailable"
+    assert response.status_code == 500 and "do-not-expose" not in response.text
+    assert CreationLookupError.model_validate(response.json()).code == "history_invalid"
     assert snapshot() == before
 
 
@@ -390,6 +390,7 @@ def test_internal_error_is_not_mistaken_for_not_found(created, monkeypatch, stag
     ) if stage == "query" else monkeypatch.setattr(api, "authenticate_lab_session", fail)
     response = lookup(headers)
     assert response.status_code == 503 and "do-not-reflect" not in response.text
+    assert CreationLookupError.model_validate(response.json()).code == "lookup_unavailable"
     assert response.headers["Cache-Control"] == "no-store"
     assert response.json()["result"] == "error" and snapshot() == before
 

@@ -118,5 +118,11 @@ CreationLookupResult = Annotated[
 class CreationLookupError(StrictModel):
     schema_version: Literal["merchant-acp-creation-lookup/1"]
     result: Literal["error"]
-    code: Literal["invalid_request", "unauthenticated", "invalid_api_version", "lookup_unavailable"]
+    code: Literal[
+        "invalid_request",
+        "unauthenticated",
+        "invalid_api_version",
+        "history_invalid",
+        "lookup_unavailable",
+    ]
     request_id: Identifier

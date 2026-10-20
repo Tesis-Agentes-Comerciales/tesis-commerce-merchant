@@ -35,6 +35,10 @@ class GuardRejected(Exception):
         super().__init__("Conditional creation rejected")
 
 
+class GuardIntegrityError(RuntimeError):
+    """Stored guard history contradicts itself; retrying cannot succeed."""
+
+
 class GuardedCreation:
     def __init__(self, context: ExecutionContext):
         self.context = context
@@ -64,7 +68,10 @@ class GuardedCreation:
             failure = None
             result = None
             if rejected is not None:
-                record = GuardedRejectionRecord.model_validate(rejected[1])
+                try:
+                    record = GuardedRejectionRecord.model_validate(rejected[1])
+                except ValueError:
+                    raise GuardIntegrityError("Rejected attempt integrity failure") from None
                 if (
                     record.digest() != rejected[2]
                     or record.guard_fingerprint != rejected[0]
@@ -72,7 +79,7 @@ class GuardedCreation:
                     or record.actor_id != self.context.actor_id
                     or record.idempotency_sha256 != key_hash
                 ):
-                    raise RuntimeError("Rejected attempt integrity failure")
+                    raise GuardIntegrityError("Rejected attempt integrity failure")
                 failure = (
                     GuardRejected(record.code, historical=True)
                     if request.fingerprint() == rejected[0]
@@ -130,7 +137,10 @@ class GuardedCreation:
         if old is not None:
             if old[0] != request.fingerprint():
                 raise GuardRejected("idempotency_conflict")
-            proof = GuardedProof.model_validate(old[1])
+            try:
+                proof = GuardedProof.model_validate(old[1])
+            except ValueError:
+                raise GuardIntegrityError("Historical proof integrity failure") from None
             if (
                 proof.digest() != old[2]
                 or proof.guard_fingerprint != old[0]
@@ -142,10 +152,10 @@ class GuardedCreation:
                 or proof.creation.idempotency_key_sha256 != key_hash
                 or proof.creation.acp_create_fingerprint != request.acp_fingerprint()
             ):
-                raise RuntimeError("Historical proof integrity failure")
+                raise GuardIntegrityError("Historical proof integrity failure")
             original = adapter._existing_creation(connection, key_hash, request.acp_fingerprint())
             if original != proof.creation.original_response:
-                raise RuntimeError("Historical ACP binding failure")
+                raise GuardIntegrityError("Historical ACP binding failure")
             return GuardedResult(result="replayed", request_id=self.context.request_id, proof=proof)
         # An existing unguarded or internal operation cannot acquire a guard retroactively.
         existing = connection.execute(
