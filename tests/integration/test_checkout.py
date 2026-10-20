@@ -1,4 +1,3 @@
-import os
 from concurrent.futures import ThreadPoolExecutor
 
 import psycopg
@@ -9,11 +8,6 @@ from commerce_lab.context import authenticate_lab_session, issue_lab_session
 from commerce_lab.contracts import Failure, Success
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.fixtures import FIXTURE_DELIVERY_CONTEXT, FIXTURE_EXPIRES_AT
-
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1",
-    reason="requires the local synthetic PostgreSQL service",
-)
 
 
 def _episode(actor_id: str) -> tuple[str, str]:

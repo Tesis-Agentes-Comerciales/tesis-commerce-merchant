@@ -28,10 +28,6 @@ from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.guarded_creation import GuardedCreation
 from commerce_lab.guarded_creation_api import GUARDED_PATH
 
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1", reason="requires new isolated PostgreSQL"
-)
-
 
 def one(cursor):
     row = cursor.fetchone()

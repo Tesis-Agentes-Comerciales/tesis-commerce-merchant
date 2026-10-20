@@ -1,4 +1,3 @@
-import os
 from typing import Any, cast
 from uuid import uuid4
 
@@ -10,11 +9,6 @@ from commerce_lab.context import issue_lab_session
 from commerce_lab.db import migrate
 from commerce_lab.feed import current_feed
 from commerce_lab.managed_catalog import import_current_catalog, managed_catalog_context
-
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1",
-    reason="requires the local PostgreSQL service",
-)
 
 
 def test_managed_catalog_import_is_idempotent_and_published() -> None:

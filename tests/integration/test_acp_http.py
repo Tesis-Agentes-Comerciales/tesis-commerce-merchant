@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -14,11 +13,6 @@ from commerce_lab.context import authenticate_lab_session, issue_lab_session
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.fixtures import FIXTURE_EXPIRES_AT
 from commerce_lab.request_observability import hash_idempotency_key
-
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1",
-    reason="requires the local synthetic PostgreSQL service",
-)
 
 ROOT = Path(__file__).resolve().parents[2]
 BUNDLE: dict[str, Any] = json.loads(

@@ -1,5 +1,7 @@
 name: Validate merchant ACP/D17
 
+# Layer 1 (unit and contracts), layer 2 (PostgreSQL integration) and the storefront build on
+# every PR; see docs/testing.md.
 on:
   push:
     branches: [main]
@@ -13,8 +15,77 @@ concurrency:
   group: merchant-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+
 jobs:
-  verify:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.12.15"
+          enable-cache: true
+
+      - name: Install Python and locked dependencies
+        run: |
+          uv python install
+          uv sync --frozen --all-groups
+
+      - name: Format, lint and types
+        run: |
+          uv run ruff format --check .
+          uv run ruff check .
+          uv run pyright
+
+      - name: Build
+        run: uv build
+
+  unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.12.15"
+          enable-cache: true
+
+      - name: Install Python and locked dependencies
+        run: |
+          uv python install
+          uv sync --frozen --all-groups
+
+      # Without RUN_DB_INTEGRATION nothing opens PostgreSQL; tests/integration is skipped.
+      - name: Unit and contract tests with coverage
+        run: uv run pytest -p pytest_cov --cov --cov-report=term
+
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "### Cobertura unitaria: $(uv run coverage report --format=total)%"
+            echo
+            echo "<details><summary>Por archivo</summary>"
+            echo
+            uv run coverage report --format=markdown --skip-covered
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  integration:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     services:
@@ -34,6 +105,9 @@ jobs:
           --health-retries 20
     env:
       DATABASE_URL: postgresql://tesis_dev:tesis_local_only@127.0.0.1:55433/tesis_lab
+      RUN_DB_INTEGRATION: "1"
+      # D17 suites refuse any cluster whose data_directory differs from this (service PGDATA).
+      RECOVERY_TEST_CLUSTER: /var/lib/postgresql/18/docker
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -51,23 +125,52 @@ jobs:
           uv python install
           uv sync --frozen --all-groups
 
-      - name: Verify Python code and contracts (without PostgreSQL opt-in)
-        env:
-          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+      # The fresh-database migration test must run first, on the untouched service; the rest
+      # runs serially on the same cluster. Coverage spans unit and integration tests; its floor
+      # sits 2 points under the 2026-10-20 baseline (87.0 %, docs/testing.md).
+      - name: PostgreSQL integration with coverage
         run: |
-          uv run ruff format --check .
-          uv run ruff check .
-          uv run pyright
-          uv run pytest
-          uv build
+          uv run pytest -p pytest_cov --cov --cov-report= tests/integration/test_migration_tracking.py
+          uv run pytest -p pytest_cov --cov --cov-append --cov-report=term --cov-fail-under=85 --ignore=tests/integration/test_migration_tracking.py
 
-      # The fresh-database migration test must run first: nothing above touches PostgreSQL.
-      - name: Verify PostgreSQL integration (fresh disposable service, serial)
-        env:
-          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
-          RUN_DB_INTEGRATION: "1"
-          # D17 suites refuse any cluster whose data_directory differs from this (service PGDATA).
-          RECOVERY_TEST_CLUSTER: /var/lib/postgresql/18/docker
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
         run: |
-          uv run pytest tests/integration/test_migration_tracking.py
-          uv run pytest tests/integration --ignore=tests/integration/test_migration_tracking.py
+          {
+            echo "### Cobertura total (unitarias + integración): $(uv run coverage report --format=total)%"
+            echo
+            echo "<details><summary>Por archivo</summary>"
+            echo
+            uv run coverage report --format=markdown --skip-covered
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  storefront:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: storefront
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Same pin as the buyer agent's UI job.
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: storefront/package-lock.json
+
+      - name: Install storefront dependencies
+        run: npm ci
+
+      # The storefront has no tests yet; lint and the type-checked build keep it compiling.
+      - name: Lint and build
+        run: |
+          npm run lint
+          npm run build

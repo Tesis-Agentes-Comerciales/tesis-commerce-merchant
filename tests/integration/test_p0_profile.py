@@ -1,5 +1,4 @@
 import json
-import os
 
 import psycopg
 import pytest
@@ -11,11 +10,6 @@ from commerce_lab.context import issue_lab_session
 from commerce_lab.contracts import Offer
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.feed import export_feed
-
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1",
-    reason="requires the local synthetic PostgreSQL service",
-)
 
 
 def _episode(actor_id: str) -> tuple[str, dict[str, str]]:

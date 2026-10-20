@@ -1,8 +1,6 @@
-import os
 from concurrent.futures import ThreadPoolExecutor
 
 import psycopg
-import pytest
 from fastapi.testclient import TestClient
 
 from commerce_lab.api import app
@@ -10,11 +8,6 @@ from commerce_lab.context import authenticate_lab_session, issue_lab_session
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.fixtures import FIXTURE_DELIVERY_CONTEXT
 from commerce_lab.persistent_catalog import PersistentCatalogReader
-
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1",
-    reason="requires the local synthetic PostgreSQL service",
-)
 
 
 def _seed_actor(actor_id: str) -> tuple[str, str]:
