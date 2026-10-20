@@ -8,7 +8,7 @@ Las imágenes son de Wikimedia Commons, con licencias libres, así que se pueden
 citar. Se guarda el nombre del archivo para poder atribuirlas.
 
 Uso:
-    uv run python scripts/fetch_wikidata_catalog.py \
+    uv run python scripts/catalog/fetch_wikidata_catalog.py \
         --out src/commerce_lab/fixtures/catalog_snapshot.json
 """
 

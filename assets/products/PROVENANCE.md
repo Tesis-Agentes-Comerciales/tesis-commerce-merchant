@@ -1,7 +1,7 @@
 # Procedencia de las imágenes de producto
 
 Todas provienen de **Wikimedia Commons** y se descargaron una sola vez con
-`scripts/fetch_product_images.py`. Cada archivo conserva la licencia libre de su
+`scripts/catalog/fetch_product_images.py`. Cada archivo conserva la licencia libre de su
 original; la página del archivo en Commons documenta autoría y licencia exacta:
 
     https://commons.wikimedia.org/wiki/File:<archivo de origen>

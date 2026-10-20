@@ -1,1 +1,2 @@
-vendor/acp/2026-04-17/* -text
+# Preserve frozen ACP source bytes on every platform; vendor/acp/provenance.json pins their SHA-256.
+/vendor/acp/2026-04-17/* text eol=lf
