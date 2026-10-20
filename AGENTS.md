@@ -18,3 +18,9 @@ sintética `tesis_sandbox` está permitida. No incorpore procesamiento de pagos,
 `/complete`, Order, decremento de inventario ni webhooks, salvo autorización
 explícita del ticket actual. No incorpore Buyer Agent, LangGraph, navegador ni
 OPA en esta extracción.
+
+`src/commerce_lab` es el producto y `tests/` su verificación; `tests/integration/` necesita un
+PostgreSQL desechable y `RUN_DB_INTEGRATION=1`, nunca el volumen de desarrollo. `scripts/catalog/`
+son recolectores de uso único: no se ejecutan para desarrollar ni probar. Antes de entregar,
+corra `uv run ruff format --check .`, `uv run ruff check .`, `uv run pyright` y `uv run pytest`,
+y la capa 2 como indica `docs/testing.md` cuando el cambio pase por PostgreSQL.
