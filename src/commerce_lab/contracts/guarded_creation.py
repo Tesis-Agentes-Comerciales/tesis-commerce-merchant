@@ -112,6 +112,7 @@ class GuardedError(StrictModel):
             "unauthenticated",
             "invalid_api_version",
             "guard_unavailable",
+            "history_invalid",
             "idempotency_conflict",
             "guard_history_unavailable",
             "offer_not_found",

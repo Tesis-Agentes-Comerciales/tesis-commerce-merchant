@@ -18,6 +18,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+@pytest.mark.mutates_checkout_state
 def test_merchant_signs_the_authoritative_ready_checkout_only_for_its_episode() -> None:
     migrate()
     offer = next(offer for offer in fresh_p0_offers() if offer.available_quantity > 0)

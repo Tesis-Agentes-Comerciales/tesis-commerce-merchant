@@ -38,6 +38,7 @@ def test_managed_catalog_import_is_idempotent_and_published() -> None:
     assert len(response.json()["products"]) == len(products)
 
 
+@pytest.mark.mutates_checkout_state
 def test_managed_catalog_checkout_uses_live_clock_and_cop() -> None:
     migrate()
     import_current_catalog()

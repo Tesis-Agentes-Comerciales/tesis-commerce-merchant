@@ -37,6 +37,7 @@ def _create(client: TestClient, headers: dict[str, str], variant_id: str, key: s
     )
 
 
+@pytest.mark.mutates_checkout_state
 def test_feed_variant_checkout_reprices_from_current_merchant_snapshot(tmp_path) -> None:
     run_id, headers = _episode("p0-authority")
     export_feed(tmp_path, run_id=run_id)

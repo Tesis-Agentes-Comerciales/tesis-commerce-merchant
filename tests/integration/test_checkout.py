@@ -165,6 +165,7 @@ def test_revision_and_expiration_fail_before_creating_checkout() -> None:
     assert expired.error.code == "OFFER_EXPIRED"
 
 
+@pytest.mark.mutates_checkout_state
 def test_two_concurrent_cancels_have_one_effect() -> None:
     migrate()
     run_id, token = _episode("checkout-concurrent-cancel")
@@ -199,6 +200,7 @@ def test_two_concurrent_cancels_have_one_effect() -> None:
     assert events == (1,)
 
 
+@pytest.mark.mutates_checkout_state
 def test_two_concurrent_updates_serialize_and_increment_revision() -> None:
     migrate()
     run_id, token = _episode("checkout-concurrent-update")
@@ -240,6 +242,7 @@ def test_two_concurrent_updates_serialize_and_increment_revision() -> None:
     assert events is not None and events[0] >= 1
 
 
+@pytest.mark.mutates_checkout_state
 def test_locked_checkout_reports_in_flight_without_side_effect() -> None:
     migrate()
     run_id, token = _episode("checkout-in-flight")
@@ -273,6 +276,7 @@ def test_locked_checkout_reports_in_flight_without_side_effect() -> None:
     assert row == (1,)
 
 
+@pytest.mark.mutates_checkout_state
 def test_checkout_update_buyer_and_fulfillment_and_non_pii_events() -> None:
     migrate()
     run_id, token = _episode("checkout-p0-update-events")
@@ -336,6 +340,7 @@ def test_checkout_update_buyer_and_fulfillment_and_non_pii_events() -> None:
         assert "Calle 100" not in payload_str
 
 
+@pytest.mark.mutates_checkout_state
 def test_ready_for_payment_lifecycle_is_persisted_and_event_idempotent() -> None:
     migrate()
     run_id, token = _episode("checkout-ready-lifecycle")

@@ -13,6 +13,7 @@ from commerce_lab.api import (
     trusted_context,
 )
 from commerce_lab.catalog import CatalogReader
+from commerce_lab.context import InvalidLabSession
 from commerce_lab.contracts import CommerceError, ExecutionContext, Failure, ScenarioClock
 from commerce_lab.db import DatabaseNotReady
 from commerce_lab.fixtures import FIXTURE_NOW, fresh_p0_offers
@@ -21,6 +22,11 @@ from commerce_lab.request_observability import (
     classify_checkout_route,
     hash_idempotency_key,
 )
+
+
+def reject_lab_session(_token: str) -> ExecutionContext:
+    # The real PostgreSQL rejection of an unknown Bearer is covered in tests/integration.
+    raise InvalidLabSession("Invalid lab session")
 
 
 @pytest.mark.parametrize(
@@ -128,6 +134,7 @@ def test_lab_catalog_requires_server_resolved_session() -> None:
 
 def test_invalid_bearer_gets_server_request_id_without_changing_auth_body(monkeypatch) -> None:
     observations: list[RequestObservation] = []
+    monkeypatch.setattr("commerce_lab.api.authenticate_lab_session", reject_lab_session)
     monkeypatch.setattr("commerce_lab.api.write_request_observation", observations.append)
     response = TestClient(app).post(
         "/checkout_sessions",
@@ -161,6 +168,7 @@ def test_observation_writer_failure_does_not_change_commercial_response(monkeypa
     def unavailable(_observation: RequestObservation) -> None:
         raise RuntimeError("synthetic writer failure")
 
+    monkeypatch.setattr("commerce_lab.api.authenticate_lab_session", reject_lab_session)
     monkeypatch.setattr("commerce_lab.api.write_request_observation", unavailable)
     response = TestClient(app).post(
         "/checkout_sessions",

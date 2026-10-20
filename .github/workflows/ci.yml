@@ -24,6 +24,7 @@ jobs:
           POSTGRES_USER: tesis_dev
           POSTGRES_PASSWORD: tesis_local_only
           POSTGRES_DB: tesis_lab
+          PGDATA: /var/lib/postgresql/18/docker
         ports:
           - 55433:5432
         options: >-
@@ -50,9 +51,6 @@ jobs:
           uv python install
           uv sync --frozen --all-groups
 
-      - name: Migrate disposable PostgreSQL for API authentication tests
-        run: uv run python -m commerce_lab.db migrate
-
       - name: Verify Python code and contracts (without PostgreSQL opt-in)
         env:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
@@ -62,3 +60,14 @@ jobs:
           uv run pyright
           uv run pytest
           uv build
+
+      # The fresh-database migration test must run first: nothing above touches PostgreSQL.
+      - name: Verify PostgreSQL integration (fresh disposable service, serial)
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+          RUN_DB_INTEGRATION: "1"
+          # D17 suites refuse any cluster whose data_directory differs from this (service PGDATA).
+          RECOVERY_TEST_CLUSTER: /var/lib/postgresql/18/docker
+        run: |
+          uv run pytest tests/integration/test_migration_tracking.py
+          uv run pytest tests/integration --ignore=tests/integration/test_migration_tracking.py

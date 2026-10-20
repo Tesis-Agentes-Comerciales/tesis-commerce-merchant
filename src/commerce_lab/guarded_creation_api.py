@@ -1,6 +1,7 @@
 """Private versioned route. No changes to ACP discovery or lookup schemas."""
 
 import json
+import logging
 from collections.abc import Callable
 from typing import Annotated
 from uuid import uuid4
@@ -12,9 +13,10 @@ from fastapi.routing import APIRoute
 
 from commerce_lab.contracts import ExecutionContext
 from commerce_lab.contracts.guarded_creation import GuardedError, GuardedInput, GuardedResult
-from commerce_lab.guarded_creation import GuardedCreation, GuardRejected
+from commerce_lab.guarded_creation import GuardedCreation, GuardIntegrityError, GuardRejected
 
 GUARDED_PATH = "/lab/governance/checkout-creation/guarded"
+logger = logging.getLogger(__name__)
 
 
 def _unique_pairs(pairs):
@@ -60,9 +62,20 @@ class _GuardedRoute(APIRoute):
                 historical = error.historical
                 if code == "invalid_request":
                     status = 422
-            except Exception:
+            except GuardIntegrityError:
+                # Corrupt history is not transient: a 503 would invite endless retries.
+                code, status = "history_invalid", 500
+                logger.exception(
+                    "Guarded creation history failed verification",
+                    extra={"request_id": getattr(request.state, "request_id", None)},
+                )
+            except Exception as error:
                 # No request, raw key, DB error or credential is reflected.
-                pass
+                logger.warning(
+                    "Guarded creation unavailable: %s",
+                    type(error).__name__,
+                    extra={"request_id": getattr(request.state, "request_id", None)},
+                )
             payload = GuardedError.model_validate(
                 {
                     "code": code,

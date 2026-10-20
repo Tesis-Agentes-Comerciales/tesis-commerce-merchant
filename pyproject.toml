@@ -37,6 +37,9 @@ packages = ["src/commerce_lab"]
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
 testpaths = ["tests"]
+markers = [
+  "mutates_checkout_state: updates, cancels, completes or rewrites a persisted checkout, its order or creation evidence; deselect with -m 'not mutates_checkout_state'",
+]
 
 [tool.pyright]
 include = ["src", "tests"]

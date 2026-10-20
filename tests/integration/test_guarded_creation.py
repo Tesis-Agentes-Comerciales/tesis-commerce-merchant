@@ -373,6 +373,7 @@ def test_future_observation_cannot_justify_creation(case):
     assert effects() == before
 
 
+@pytest.mark.mutates_checkout_state
 @pytest.mark.parametrize("action", ["update", "delete"])
 def test_accepted_guard_evidence_cannot_be_modified(case, action):
     first = post(case)
@@ -403,6 +404,52 @@ def test_proof_failure_rolls_back_checkout_and_acp_pair(case, monkeypatch, phase
     before = effects()
     response = post(case)
     assert response.status_code == 503 and effects() == before
+
+
+@pytest.mark.mutates_checkout_state
+@pytest.mark.parametrize("damage", ["proof", "acp_response", "rejection"])
+def test_corrupt_history_is_non_retryable_without_effects(case, damage):
+    body = case[2]
+    if damage == "rejection":
+        body = {**body, "expected_offer_revision": case[3].revision + 1}
+        assert post(case, body=body).status_code == 409
+        table, column, value = "rejected_guarded_checkout_attempts", "record_sha256", "0" * 64
+    else:
+        created = post(case)
+        assert created.status_code == 201
+        if damage == "proof":
+            table, column, value = "guarded_checkout_creations", "proof_sha256", "0" * 64
+        else:
+            # Schema-valid stored ACP response that no longer matches the accepted proof.
+            original = created.json()["proof"]["creation"]["original_response"]
+            changed = Jsonb({**original, "status": "canceled"})
+            table, column, value = "checkout_sessions", "acp_create_response", changed
+    with psycopg.connect(database_url()) as db:
+        db.execute(sql.SQL("ALTER TABLE {} DISABLE TRIGGER USER").format(sql.Identifier(table)))
+        db.execute(
+            sql.SQL("UPDATE {} SET {}=%s WHERE run_id=%s").format(
+                sql.Identifier(table), sql.Identifier(column)
+            ),
+            (value, case[0]),
+        )
+        db.execute(sql.SQL("ALTER TABLE {} ENABLE TRIGGER USER").format(sql.Identifier(table)))
+    before = effects()
+    for _ in range(2):
+        response = post(case, body=body)
+        assert response.status_code == 500 and response.json()["code"] == "history_invalid"
+        assert response.headers["Cache-Control"] == "no-store"
+    assert effects() == before
+
+
+def test_unreachable_database_remains_retryable(case, monkeypatch):
+    monkeypatch.setattr(
+        "commerce_lab.guarded_creation.database_url",
+        lambda: "postgresql://synthetic:closed@127.0.0.1:9/tesis_lab",
+    )
+    before = effects()
+    response = post(case)
+    assert response.status_code == 503 and response.json()["code"] == "guard_unavailable"
+    assert "synthetic:closed" not in response.text and effects() == before
 
 
 @pytest.mark.parametrize("change", ["revision", "digest", "variant", "field_presence"])

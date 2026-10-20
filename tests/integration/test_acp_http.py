@@ -79,6 +79,7 @@ def _observation(request_id: str) -> tuple[Any, ...]:
     return row
 
 
+@pytest.mark.mutates_checkout_state
 def test_request_observability_covers_checkout_http_boundaries() -> None:
     migrate()
     client, headers = _client("observability-http")
@@ -358,6 +359,7 @@ def test_acp_checkout_cannot_be_read_from_another_episode() -> None:
     assert foreign.json()["detail"]["code"] == "CHECKOUT_NOT_FOUND"
 
 
+@pytest.mark.mutates_checkout_state
 def test_acp_update_get_replay_conflict_and_authoritative_revision() -> None:
     migrate()
     client, headers = _client("acp-update-cycle")
@@ -407,6 +409,7 @@ def test_acp_update_get_replay_conflict_and_authoritative_revision() -> None:
     assert all(event[1]["request_id"] for event in events)
 
 
+@pytest.mark.mutates_checkout_state
 def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
     migrate()
     client, headers = _client("acp-cancel-cycle")
@@ -467,6 +470,7 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
     assert events[1][1]["request_id"] == replay.headers["Request-Id"]
 
 
+@pytest.mark.mutates_checkout_state
 def test_acp_lifecycle_rejects_missing_headers_foreign_ids_and_terminal_update() -> None:
     migrate()
     owner, headers = _client("acp-lifecycle-owner")
@@ -523,6 +527,7 @@ def test_acp_lifecycle_rejects_missing_headers_foreign_ids_and_terminal_update()
     assert blocked.json()["detail"]["code"] == "CHECKOUT_NOT_EDITABLE"
 
 
+@pytest.mark.mutates_checkout_state
 def test_acp_idempotency_key_is_scoped_by_mutation_endpoint() -> None:
     migrate()
     client, headers = _client("acp-operation-scoping")
@@ -550,6 +555,7 @@ def test_acp_idempotency_key_is_scoped_by_mutation_endpoint() -> None:
     )
 
 
+@pytest.mark.mutates_checkout_state
 def test_acp_update_reports_in_flight_as_http_409() -> None:
     migrate()
     client, headers = _client("acp-http-in-flight")
@@ -572,6 +578,7 @@ def test_acp_update_reports_in_flight_as_http_409() -> None:
         assert response.headers["Request-Id"]
 
 
+@pytest.mark.mutates_checkout_state
 def test_acp_expired_checkout_cannot_be_updated_but_can_be_canceled() -> None:
     migrate()
     client, headers = _client("acp-expired-lifecycle")
@@ -602,6 +609,7 @@ def test_acp_expired_checkout_cannot_be_updated_but_can_be_canceled() -> None:
     )
 
 
+@pytest.mark.mutates_checkout_state
 def test_acp_update_rejects_unsupported_fields_and_invalid_address() -> None:
     migrate()
     client, headers = _client("acp-unsupported-fields")

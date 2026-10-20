@@ -127,9 +127,34 @@ uv run ruff check .
 uv run pyright
 uv run pytest
 $env:RUN_DB_INTEGRATION="1"
-uv run pytest tests/integration
-Remove-Item Env:RUN_DB_INTEGRATION
+$env:RECOVERY_TEST_CLUSTER="/var/lib/postgresql/18/docker"
+uv run pytest tests/integration/test_migration_tracking.py
+uv run pytest tests/integration --ignore=tests/integration/test_migration_tracking.py
+Remove-Item Env:RUN_DB_INTEGRATION, Env:RECOVERY_TEST_CLUSTER
 ```
+
+`uv run pytest` sin `RUN_DB_INTEGRATION` no abre conexiones a PostgreSQL. `tests/integration`
+escribe en la base, así que use un PostgreSQL desechable y recién creado, no el volumen de
+desarrollo: la prueba de migraciones solo se ejecuta sobre una base vacía y por eso va primero.
+Las suites D17 rechazan cualquier clúster cuyo `data_directory` no sea
+`RECOVERY_TEST_CLUSTER` (el `PGDATA` de la imagen fijada). El CI ejecuta esta misma secuencia,
+en serie, contra su servicio PostgreSQL.
+
+Las pruebas que actualizan, cancelan, completan o reescriben un checkout persistido, su Order o
+su evidencia de creación llevan el marker `mutates_checkout_state` (registrado en
+`pyproject.toml`; `--strict-markers` rechaza nombres mal escritos). Un filtro por nombre con `-k`
+no las excluye: en AUDIT-MERCHANT-CANCEL-01 una selección por nombre ejecutó dos veces un
+`cancel` contra una base compartida. Para una selección parcial que no mute checkouts, combine el
+filtro con el marker:
+
+```powershell
+uv run pytest tests/integration -k lookup -m "not mutates_checkout_state"
+uv run pytest tests/integration -m mutates_checkout_state --collect-only -q
+```
+
+La segunda línea lista las pruebas marcadas. Excluirlas no vuelve inocuo el resto: también crean
+episodios y checkouts y cambian el catálogo de su episodio, así que `tests/integration` solo debe
+correr contra un PostgreSQL desechable.
 
 Feed API incremental y frontend no están implementados. El handler sandbox no procesa
 credenciales reales ni dinero real; este subconjunto no afirma conformidad ACP integral.

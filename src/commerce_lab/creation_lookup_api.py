@@ -1,5 +1,6 @@
 """Isolated lab route: typed, non-echoing errors and no-store, including dependencies."""
 
+import logging
 from collections.abc import Callable
 from typing import Annotated
 from uuid import uuid4
@@ -16,9 +17,10 @@ from commerce_lab.contracts.creation_lookup import (
     CreationLookupInput,
     CreationLookupResult,
 )
-from commerce_lab.creation_lookup import CheckoutCreationLookup
+from commerce_lab.creation_lookup import CheckoutCreationLookup, LookupIntegrityError
 
 LOOKUP_PATH = "/lab/recovery/checkout-creation/lookup"
+logger = logging.getLogger(__name__)
 
 
 class _LookupRoute(APIRoute):
@@ -40,9 +42,20 @@ class _LookupRoute(APIRoute):
                     401: "unauthenticated",
                     422: "invalid_request",
                 }.get(status, "lookup_unavailable")
-            except Exception:
+            except LookupIntegrityError:
+                # Corrupt history is not transient: a 503 would invite endless retries.
+                code, status = "history_invalid", 500
+                logger.exception(
+                    "Creation lookup history failed verification",
+                    extra={"request_id": getattr(request.state, "request_id", None)},
+                )
+            except Exception as error:
                 # Do not reflect DB errors, exception text, submitted bodies or headers.
-                pass
+                logger.warning(
+                    "Creation lookup unavailable: %s",
+                    type(error).__name__,
+                    extra={"request_id": getattr(request.state, "request_id", None)},
+                )
             result = CreationLookupError.model_validate(
                 {
                     "schema_version": LOOKUP_SCHEMA,
@@ -70,7 +83,7 @@ def creation_lookup_router(
         LOOKUP_PATH,
         response_model=CreationLookupResult,
         dependencies=[Depends(version_dependency)],
-        responses={code: {"model": CreationLookupError} for code in (400, 401, 422, 503)},
+        responses={code: {"model": CreationLookupError} for code in (400, 401, 422, 500, 503)},
     )
     def lookup_creation(
         request: Request,
