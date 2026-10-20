@@ -75,7 +75,7 @@ unidad, rechaza stock cero y **no reserva ni reduce inventario**.
 Se requieren Python 3.12, uv y Docker Compose. PostgreSQL merchant escucha
 solo en `127.0.0.1:55433`; FastAPI solo en `127.0.0.1:4120`.
 
-```powershell
+```sh
 uv sync --frozen
 docker compose up -d --wait postgres
 uv run python -m commerce_lab.db migrate
@@ -121,16 +121,15 @@ evidencia de pago.
 
 ## Verificación
 
-```powershell
+```sh
 uv run ruff format --check .
 uv run ruff check .
 uv run pyright
 uv run pytest
-$env:RUN_DB_INTEGRATION="1"
-$env:RECOVERY_TEST_CLUSTER="/var/lib/postgresql/18/docker"
+export RUN_DB_INTEGRATION=1 RECOVERY_TEST_CLUSTER=/var/lib/postgresql/18/docker
 uv run pytest tests/integration/test_migration_tracking.py
 uv run pytest tests/integration --ignore=tests/integration/test_migration_tracking.py
-Remove-Item Env:RUN_DB_INTEGRATION, Env:RECOVERY_TEST_CLUSTER
+unset RUN_DB_INTEGRATION RECOVERY_TEST_CLUSTER
 ```
 
 `uv run pytest` sin `RUN_DB_INTEGRATION` no abre conexiones a PostgreSQL. `tests/integration`
@@ -150,7 +149,7 @@ no las excluye: en AUDIT-MERCHANT-CANCEL-01 una selección por nombre ejecutó d
 `cancel` contra el clúster PostgreSQL desechable que compartían las fases de la auditoría. Para
 una selección parcial que no mute checkouts, combine el filtro con el marker:
 
-```powershell
+```sh
 uv run pytest tests/integration -k lookup -m "not mutates_checkout_state"
 uv run pytest tests/integration -m mutates_checkout_state --collect-only -q
 ```
@@ -161,6 +160,9 @@ correr contra un PostgreSQL desechable.
 
 Feed API incremental y frontend no están implementados. El handler sandbox no procesa
 credenciales reales ni dinero real; este subconjunto no afirma conformidad ACP integral.
+
+Los reportes de ejecución de los tickets B2 (EC-MER-REC-01, EC-GOV-06D-A, EC-MER-07B-A y 07B-A2),
+corridos en Windows, están en [docs/archive](docs/archive/README.md) como registro histórico.
 
 ## Despliegue de la demo sintética
 

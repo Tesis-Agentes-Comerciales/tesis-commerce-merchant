@@ -12,7 +12,7 @@ Las imágenes son renders del fabricante, no material de licencia libre: quedan 
 aparte en PROVENANCE.md para poder citarlas.
 
 Uso:
-    uv run python scripts/fetch_render_images.py
+    uv run python scripts/catalog/fetch_render_images.py
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Final
 
-ROOT: Final = Path(__file__).resolve().parents[1]
+ROOT: Final = Path(__file__).resolve().parents[2]
 SNAPSHOT: Final = ROOT / "src/commerce_lab/fixtures/catalog_snapshot.json"
 OUT_DIR: Final = ROOT / "assets/products"
 # El catálogo publica el render en dos rutas distintas según la antigüedad del modelo.

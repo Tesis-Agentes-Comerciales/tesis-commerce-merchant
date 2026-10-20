@@ -78,7 +78,7 @@ _PUBLIC_ERROR_CODES = {
 
 
 # Fotos de producto descargadas una vez desde Wikimedia Commons (ver
-# scripts/fetch_product_images.py). Servirlas desde el comercio evita depender de un
+# scripts/catalog/fetch_product_images.py). Servirlas desde el comercio evita depender de un
 # tercero que limita las peticiones cuando la vitrina pide decenas a la vez.
 _ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 if _ASSETS_DIR.is_dir():
