@@ -30,9 +30,6 @@ from commerce_lab.creation_lookup_api import LOOKUP_PATH
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.fixtures import FIXTURE_DELIVERY_CONTEXT
 
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1", reason="requires isolated synthetic PostgreSQL"
-)
 BODY = {
     "line_items": [{"id": "Q100286751-256GB"}],
     "currency": "cop",

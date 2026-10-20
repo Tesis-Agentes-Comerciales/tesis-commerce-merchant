@@ -29,9 +29,6 @@ from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.db.core import MIGRATIONS
 from commerce_lab.fixtures import FIXTURE_DELIVERY_CONTEXT
 
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1", reason="requires isolated synthetic PostgreSQL"
-)
 ROOT = Path(__file__).resolve().parents[2]
 WORKER = Path(__file__).with_name("recovery_worker.py")
 BODY = {

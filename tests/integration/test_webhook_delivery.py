@@ -1,5 +1,4 @@
 import json
-import os
 import sys
 from datetime import UTC, datetime
 from types import SimpleNamespace
@@ -15,13 +14,7 @@ from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.webhook_delivery import WebhookDispatcher
 
 # Every test completes a checkout (and its order), so the whole module is checkout-mutating.
-pytestmark = [
-    pytest.mark.skipif(
-        os.getenv("RUN_DB_INTEGRATION") != "1",
-        reason="requires the local synthetic PostgreSQL service",
-    ),
-    pytest.mark.mutates_checkout_state,
-]
+pytestmark = pytest.mark.mutates_checkout_state
 
 
 @pytest.fixture(autouse=True)

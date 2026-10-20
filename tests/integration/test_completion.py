@@ -1,5 +1,4 @@
 import json
-import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -19,13 +18,7 @@ from commerce_lab.fixtures import FIXTURE_EXPIRES_AT
 from commerce_lab.payment_client import PaymentProviderError
 
 # Every test completes a checkout (and its order), so the whole module is checkout-mutating.
-pytestmark = [
-    pytest.mark.skipif(
-        os.getenv("RUN_DB_INTEGRATION") != "1",
-        reason="requires the local synthetic PostgreSQL service",
-    ),
-    pytest.mark.mutates_checkout_state,
-]
+pytestmark = pytest.mark.mutates_checkout_state
 
 ROOT = Path(__file__).resolve().parents[2]
 BUNDLE = json.loads(

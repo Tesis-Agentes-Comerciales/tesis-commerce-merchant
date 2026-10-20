@@ -1,5 +1,4 @@
 import hashlib
-import os
 from pathlib import Path
 
 import psycopg
@@ -7,11 +6,6 @@ import pytest
 
 from commerce_lab.db import database_url, migrate
 from commerce_lab.db.core import MIGRATIONS, migration_sha256
-
-pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_DB_INTEGRATION") != "1",
-    reason="requires the local synthetic PostgreSQL service",
-)
 
 
 def test_fresh_database_tracks_each_migration_once() -> None:

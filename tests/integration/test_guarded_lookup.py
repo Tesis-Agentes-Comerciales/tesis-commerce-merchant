@@ -1,7 +1,6 @@
 """Real isolated PostgreSQL; ASGI plus one real TCP recovery without commercial retry."""
 
 import hashlib
-import os
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 
@@ -29,12 +28,7 @@ from commerce_lab.guarded_creation_api import GUARDED_PATH
 from commerce_lab.guarded_lookup import GuardProofLookup
 from commerce_lab.guarded_lookup_api import LOOKUP_PATH
 
-pytestmark = [
-    pytest.mark.skipif(
-        os.getenv("RUN_DB_INTEGRATION") != "1", reason="requires new isolated PostgreSQL"
-    ),
-    pytest.mark.usefixtures("isolated_cluster"),
-]
+pytestmark = pytest.mark.usefixtures("isolated_cluster")
 
 
 def body(case):
