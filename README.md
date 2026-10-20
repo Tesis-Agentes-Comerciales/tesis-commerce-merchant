@@ -2,7 +2,22 @@
 
 Merchant independiente para la tesis: FastAPI → adaptador ACP REST → catálogo y
 checkout autoritativos en PostgreSQL. El Buyer Agent, el LLM y el cliente HTTP ACP
-viven en otro repositorio. El namespace Python sigue siendo `commerce_lab`.
+viven en otro repositorio
+([`tesis-commerce-agent`](https://github.com/Tesis-Agentes-Comerciales/tesis-commerce-agent)).
+El namespace Python sigue siendo `commerce_lab`.
+
+## Estructura
+
+| Ruta | Contenido |
+|---|---|
+| `src/commerce_lab/` | El merchant: API FastAPI, adaptador ACP, checkout, catálogo, AP2, D17 y webhooks. Es el único paquete del wheel. `src/commerce/fixtures/acp/` guarda los ejemplos ACP de las pruebas de contrato. |
+| `migrations/` | SQL de PostgreSQL que aplica `python -m commerce_lab.db migrate`. |
+| `vendor/acp/` | Esquemas ACP `2026-04-17` congelados; no se modifican. |
+| `tests/` | Unitarias y de contrato; `tests/integration/` necesita PostgreSQL. Ver [docs/testing.md](docs/testing.md). |
+| `storefront/` | Vitrina React de solo consulta sobre `GET /storefront/catalog`; ver [su README](storefront/README.md). |
+| `scripts/` | `railway_bootstrap.py`, arranque del despliegue, y `catalog/`, recolectores de uso único del catálogo; ver [scripts/README.md](scripts/README.md). |
+| `assets/products/` | Fotos del catálogo y su procedencia (`PROVENANCE.md`). |
+| `docs/` | [Estrategia de pruebas](docs/testing.md), [auditoría HP/B2 de cancelación](docs/hp-b2-cancellation-audit-2026-10-17-v2.md) y reportes históricos en [archive](docs/archive/README.md). |
 
 ## Perfil P0 implementado
 
@@ -102,7 +117,7 @@ Para probar checkout protegido,
 `uv run python -m commerce_lab.db issue-session RUN_ID ACTOR_ID` emite un Bearer
 sintético solo en consola local.
 No lo copie a Git, artefactos ni logs. No hay endpoint público para emitirlo.
-Las migraciones merchant son `001`, `002`, `003`, `004`, `007`, `008`, `009`, `010`, `011` y `012`;
+Las migraciones merchant son `001`, `002`, `003`, `004` y de `007` a `014`;
 `005`/`006` pertenecen al carril live/browser legado y no se ejecutan aquí. Los
 episodios experimentales históricos no se reescriben.
 
@@ -121,26 +136,25 @@ evidencia de pago.
 
 ## Verificación
 
+La estrategia de pruebas (capas, ejecución local, workflow y cobertura) está en
+[docs/testing.md](docs/testing.md). En resumen:
+
 ```sh
 uv run ruff format --check .
 uv run ruff check .
 uv run pyright
 uv run pytest
-export RUN_DB_INTEGRATION=1 RECOVERY_TEST_CLUSTER=/var/lib/postgresql/18/docker
-uv run pytest tests/integration/test_migration_tracking.py
-uv run pytest tests/integration --ignore=tests/integration/test_migration_tracking.py
-unset RUN_DB_INTEGRATION RECOVERY_TEST_CLUSTER
 ```
 
-`uv run pytest` sin `RUN_DB_INTEGRATION` no abre conexiones a PostgreSQL. `tests/integration`
-escribe en la base, así que use un PostgreSQL desechable y recién creado, no el volumen de
-desarrollo: la prueba de migraciones solo se ejecuta sobre una base vacía y por eso va primero.
-Las suites D17 rechazan cualquier clúster cuyo `data_directory` no sea
-`RECOVERY_TEST_CLUSTER` (el `PGDATA` de la imagen fijada). El CI ejecuta esta misma secuencia,
-en serie, contra su servicio PostgreSQL. Esa secuencia sustituye al antiguo runner Windows
-`tests/integration/guarded_cluster.py` (EC-MER-07B-A), que se retiró; la suite viva del Agent
-(`RUN_LIVE_STACK=1`, en `tests/integration` de ese repositorio) ejercita este Merchant por HTTP
-contra un PostgreSQL desechable en macOS y Linux.
+`uv run pytest` corre las unitarias y de contrato sin abrir conexiones a PostgreSQL;
+`tests/integration` se recoge y se omite. Esa carpeta solo corre con `RUN_DB_INTEGRATION=1` y
+escribe en la base, así que use un PostgreSQL desechable y recién creado, nunca el volumen de
+desarrollo: la prueba de migraciones solo pasa sobre una base vacía y va primero, y las suites D17
+rechazan cualquier clúster cuyo `data_directory` no sea `RECOVERY_TEST_CLUSTER`. El procedimiento
+con la imagen fijada del CI está en [docs/testing.md](docs/testing.md#en-local). `ci.yml` corre
+`lint`, `unit`, `integration` (PostgreSQL) y `storefront` en cada PR. La suite de sistema del
+Agent (`RUN_LIVE_STACK=1`, en `tests/integration` de ese repositorio) ejercita este Merchant por
+HTTP contra un PostgreSQL desechable en macOS y Linux.
 
 Las pruebas que actualizan, cancelan, completan o reescriben un checkout persistido, su Order o
 su evidencia de creación llevan el marker `mutates_checkout_state` (registrado en
@@ -158,8 +172,9 @@ La segunda línea lista las pruebas marcadas. Excluirlas no vuelve inocuo el res
 episodios y checkouts y cambian el catálogo de su episodio, así que `tests/integration` solo debe
 correr contra un PostgreSQL desechable.
 
-Feed API incremental y frontend no están implementados. El handler sandbox no procesa
-credenciales reales ni dinero real; este subconjunto no afirma conformidad ACP integral.
+Feed API incremental no está implementada. `storefront/` es una vitrina de solo consulta, sin
+carrito ni checkout. El handler sandbox no procesa credenciales reales ni dinero real; este
+subconjunto no afirma conformidad ACP integral.
 
 Los reportes de ejecución de los tickets B2 (EC-MER-REC-01, EC-GOV-06D-A, EC-MER-07B-A y 07B-A2),
 corridos en Windows, están en [docs/archive](docs/archive/README.md) como registro histórico.
@@ -184,4 +199,4 @@ no lo despacha automáticamente.
 
 El episodio P0 usa tiempo sintético `2026-09-10T14:00:00Z`; agente y proveedor necesitan sus
 relojes sandbox correspondientes para no tratar como vencido el checkout. La configuración
-completa de la demo está en el [runbook del agente](https://github.com/YairAndrade1/tesis-commerce-agent/blob/main/docs/deployment-railway.md).
+completa de la demo está en el [runbook del agente](https://github.com/Tesis-Agentes-Comerciales/tesis-commerce-agent/blob/main/docs/deployment-railway.md).
