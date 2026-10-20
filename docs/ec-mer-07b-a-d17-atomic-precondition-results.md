@@ -52,6 +52,12 @@ Se conserva exactamente la presencia/omisión de campos del ACP mediante `exclud
 
 409 indica rechazo semántico/conflicto; 401 autenticación; 422 entrada; 400 versión API; 503 fallo inesperado. Errores tipados sanitizados y `Cache-Control: no-store`. No se reflejan tokens, claves, cuerpos ni errores SQL. Un 503 es incertidumbre, no demostración de ausencia de efectos.
 
+> **Actualización 2026-10-19 (PR #3, `fix/merchant-ci-integration`).** Si la historia guardada
+> se contradice (`GuardIntegrityError`: prueba histórica, registro de rechazo o vínculo ACP
+> que no verifica), la ruta guarded responde **500 `history_invalid`** en vez de 503. Reintentar
+> no puede resolverlo. Los demás fallos inesperados siguen en 503 `guard_unavailable`. Ninguno
+> de los dos demuestra ausencia de efectos ni concede reenvío.
+
 ## D. Implementación, archivos y migraciones
 
 | Archivo | Cambio |

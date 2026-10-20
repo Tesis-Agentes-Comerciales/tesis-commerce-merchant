@@ -144,8 +144,8 @@ Las pruebas que actualizan, cancelan, completan o reescriben un checkout persist
 su evidencia de creación llevan el marker `mutates_checkout_state` (registrado en
 `pyproject.toml`; `--strict-markers` rechaza nombres mal escritos). Un filtro por nombre con `-k`
 no las excluye: en AUDIT-MERCHANT-CANCEL-01 una selección por nombre ejecutó dos veces un
-`cancel` contra una base compartida. Para una selección parcial que no mute checkouts, combine el
-filtro con el marker:
+`cancel` contra el clúster PostgreSQL desechable que compartían las fases de la auditoría. Para
+una selección parcial que no mute checkouts, combine el filtro con el marker:
 
 ```powershell
 uv run pytest tests/integration -k lookup -m "not mutates_checkout_state"
