@@ -129,6 +129,13 @@ ACTOR_ID ORDER_ID` produce la transición sintética P0 `confirmed` →
 `processing`, y `python -m commerce_lab.db webhook-dispatch` procesa entregas
 vencidas con un máximo de cinco intentos.
 
+`python -m commerce_lab.db run-checkouts RUN_ID` imprime, en una transacción de solo lectura,
+los checkouts de una corrida ordenados por `created_at` (`checkout_id`, `status`, `offer_id`,
+`created_at`, `updated_at`), su número en `count` y las órdenes en `order_count`. El estado es el
+persistido: un checkout vencido que nadie volvió a leer sigue como `prepared`. Una corrida
+inexistente falla en lugar de reportar cero. El piloto B2 del agente lo usa para contar los
+checkouts del comercio por corrida (enmienda M3).
+
 Para completar compras configure `PAYMENT_PROVIDER_URL`, `PAYMENT_MERCHANT_BEARER_TOKEN` y
 `PAYMENT_MERCHANT_ID` con el proveedor sandbox separado. Sin esa credencial, `/complete` falla
 cerrado con `PROVIDER_UNAVAILABLE`; el merchant nunca acepta un token por su prefijo como

@@ -3,6 +3,7 @@ from commerce_lab.db.core import (
     check_database_ready,
     database_url,
     migrate,
+    run_checkouts,
     seed,
     verify,
 )
@@ -12,6 +13,7 @@ __all__ = [
     "check_database_ready",
     "database_url",
     "migrate",
+    "run_checkouts",
     "seed",
     "verify",
 ]

@@ -273,6 +273,55 @@ def verify(run_id: str) -> dict[str, object]:
     }
 
 
+def run_checkouts(run_id: str) -> dict[str, object]:
+    """Checkouts and orders persisted for one run, read without writing.
+
+    The B2 pilot counts merchant checkouts per run (amendment M3) because the agent's answer
+    alone cannot show a checkout that was created and then canceled. An unknown run fails
+    instead of reporting zero, so a wrong run id never passes as "no checkouts".
+    """
+    parsed_run_id = UUID(run_id)
+    with psycopg.connect(database_url()) as connection, connection.transaction():
+        connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+        run = connection.execute(
+            "SELECT 1 FROM experiment_runs WHERE run_id = %s", (parsed_run_id,)
+        ).fetchone()
+        if run is None:
+            raise LookupError("Run does not exist")
+        checkouts = connection.execute(
+            """
+                SELECT checkout_id, status, offer_id, created_at, updated_at
+                FROM checkout_sessions WHERE run_id = %s
+                ORDER BY created_at, checkout_id
+                """,
+            (parsed_run_id,),
+        ).fetchall()
+        orders = connection.execute(
+            "SELECT count(*) FROM orders WHERE run_id = %s", (parsed_run_id,)
+        ).fetchone()
+        assert orders is not None
+    return {
+        "operation": "run-checkouts",
+        "run_id": str(parsed_run_id),
+        "count": len(checkouts),
+        "checkouts": [
+            {
+                "checkout_id": checkout_id,
+                "status": status,
+                "offer_id": offer_id,
+                "created_at": _utc(created_at),
+                "updated_at": _utc(updated_at),
+            }
+            for checkout_id, status, offer_id, created_at, updated_at in checkouts
+        ],
+        "order_count": orders[0],
+    }
+
+
+def _utc(value: datetime) -> str:
+    return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
+
+
 def _load_compatible_artifact(run_id: str, fixture_hash: str, offer_count: int) -> dict[str, Any]:
     try:
         existing = json.loads(ARTIFACT_PATH.read_text(encoding="utf-8"))

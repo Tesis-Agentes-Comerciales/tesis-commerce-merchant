@@ -1,6 +1,14 @@
+import json
+import sys
+
 import pytest
 
-from commerce_lab.db.core import fixture_snapshot, migration_sha256, validate_database_url
+from commerce_lab.db.core import (
+    fixture_snapshot,
+    migration_sha256,
+    run_checkouts,
+    validate_database_url,
+)
 
 
 def test_fixture_manifest_is_deterministic_and_complete() -> None:
@@ -61,3 +69,30 @@ def test_database_url_accepts_local_or_opted_in_railway_private(
 def test_database_url_rejects_out_of_scope_destinations(url: str, allow_private: bool) -> None:
     with pytest.raises(ValueError, match="database URL"):
         validate_database_url(url, allow_private=allow_private)
+
+
+def test_run_checkouts_rejects_a_malformed_run_id_before_connecting(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def no_database() -> str:
+        raise AssertionError("run-checkouts must not connect for a malformed run id")
+
+    monkeypatch.setattr("commerce_lab.db.core.database_url", no_database)
+
+    with pytest.raises(ValueError):
+        run_checkouts("not-a-run-id")
+
+
+def test_run_checkouts_cli_prints_the_report_as_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from commerce_lab.db import __main__ as db_main
+
+    run_id = "8d7c5a8e-2f9b-4c1e-9a37-0f1d2c3b4a59"
+    report = {"operation": "run-checkouts", "run_id": run_id, "count": 0, "checkouts": []}
+    monkeypatch.setattr(db_main, "run_checkouts", lambda value: report | {"asked": value})
+    monkeypatch.setattr(sys, "argv", ["db", "run-checkouts", run_id])
+
+    db_main.main()
+
+    assert json.loads(capsys.readouterr().out) == report | {"asked": run_id}
