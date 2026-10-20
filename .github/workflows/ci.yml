@@ -1,7 +1,7 @@
 name: Validate merchant ACP/D17
 
-# Layer 1 (unit and contracts) and layer 2 (PostgreSQL integration) on every PR; see
-# docs/testing.md.
+# Layer 1 (unit and contracts), layer 2 (PostgreSQL integration) and the storefront build on
+# every PR; see docs/testing.md.
 on:
   push:
     branches: [main]
@@ -146,3 +146,31 @@ jobs:
             echo "</details>"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  storefront:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: storefront
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Same pin as the buyer agent's UI job.
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: storefront/package-lock.json
+
+      - name: Install storefront dependencies
+        run: npm ci
+
+      # The storefront has no tests yet; lint and the type-checked build keep it compiling.
+      - name: Lint and build
+        run: |
+          npm run lint
+          npm run build
