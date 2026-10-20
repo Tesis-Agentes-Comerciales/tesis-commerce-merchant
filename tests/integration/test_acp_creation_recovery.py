@@ -352,6 +352,7 @@ def test_invalid_credentials_block_and_renewal_same_scope_recovers(episode, inva
     assert count(run) == 1
 
 
+@pytest.mark.mutates_checkout_state
 def test_replay_keeps_original_response_after_cancel(episode):
     run, headers = episode
     first = post(headers)
@@ -430,6 +431,7 @@ def test_legacy_internal_creation_is_not_silently_adopted(episode):
     assert count(run) == 1
 
 
+@pytest.mark.mutates_checkout_state
 @pytest.mark.parametrize(
     "column", ["acp_create_response", "acp_create_fingerprint", "create_snapshot"]
 )

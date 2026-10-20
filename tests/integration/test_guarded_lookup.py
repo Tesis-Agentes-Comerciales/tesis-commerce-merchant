@@ -183,6 +183,7 @@ def test_ordinary_checkout_never_promoted(case, record_rejection):
     assert_readonly(case, expected="unrecoverable")
 
 
+@pytest.mark.mutates_checkout_state
 def test_catalog_and_current_checkout_changes_preserve_history(case):
     proof = post(case).json()["proof"]
     mutate(
@@ -325,6 +326,7 @@ def unprotected(table):
             db.execute(sql.SQL("ALTER TABLE {} ENABLE TRIGGER USER").format(sql.Identifier(table)))
 
 
+@pytest.mark.mutates_checkout_state
 @pytest.mark.parametrize(
     "damage",
     [
@@ -390,6 +392,7 @@ def test_corrupt_accepted_is_error_without_writes(case, damage):
     assert response.status_code == 500 and response.json()["code"] == "history_invalid"
 
 
+@pytest.mark.mutates_checkout_state
 def test_corrupt_rejection_is_not_not_found(case):
     assert post(case, body={**case[2], "expected_offer_revision": 999}).status_code == 409
     with unprotected("rejected_guarded_checkout_attempts") as db:
@@ -400,6 +403,7 @@ def test_corrupt_rejection_is_not_not_found(case):
     assert assert_readonly(case, expected="error").status_code == 500
 
 
+@pytest.mark.mutates_checkout_state
 def test_contradictory_accepted_and_rejected_fails_closed(case):
     proof = post(case).json()["proof"]
     record = GuardedRejectionRecord(

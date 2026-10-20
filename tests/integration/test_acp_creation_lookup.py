@@ -317,6 +317,7 @@ def test_lookup_returns_original_after_catalog_changes(created, change):
     assert snapshot() == before
 
 
+@pytest.mark.mutates_checkout_state
 def test_canceled_checkout_does_not_change_historical_lookup(created):
     _, headers, original = created
     with TestClient(api.app) as client:
@@ -333,6 +334,7 @@ def test_canceled_checkout_does_not_change_historical_lookup(created):
     assert snapshot() == before
 
 
+@pytest.mark.mutates_checkout_state
 @pytest.mark.parametrize("damage", ["schema", "credential"])
 def test_corrupt_response_is_history_invalid_never_found_or_rebuilt(created, damage):
     run, headers, original = created

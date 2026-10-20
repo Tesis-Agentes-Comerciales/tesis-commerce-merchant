@@ -373,6 +373,7 @@ def test_future_observation_cannot_justify_creation(case):
     assert effects() == before
 
 
+@pytest.mark.mutates_checkout_state
 @pytest.mark.parametrize("action", ["update", "delete"])
 def test_accepted_guard_evidence_cannot_be_modified(case, action):
     first = post(case)
@@ -405,6 +406,7 @@ def test_proof_failure_rolls_back_checkout_and_acp_pair(case, monkeypatch, phase
     assert response.status_code == 503 and effects() == before
 
 
+@pytest.mark.mutates_checkout_state
 @pytest.mark.parametrize("damage", ["proof", "acp_response", "rejection"])
 def test_corrupt_history_is_non_retryable_without_effects(case, damage):
     body = case[2]

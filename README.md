@@ -140,6 +140,22 @@ Las suites D17 rechazan cualquier clúster cuyo `data_directory` no sea
 `RECOVERY_TEST_CLUSTER` (el `PGDATA` de la imagen fijada). El CI ejecuta esta misma secuencia,
 en serie, contra su servicio PostgreSQL.
 
+Las pruebas que actualizan, cancelan, completan o reescriben un checkout persistido, su Order o
+su evidencia de creación llevan el marker `mutates_checkout_state` (registrado en
+`pyproject.toml`; `--strict-markers` rechaza nombres mal escritos). Un filtro por nombre con `-k`
+no las excluye: en AUDIT-MERCHANT-CANCEL-01 una selección por nombre ejecutó dos veces un
+`cancel` contra una base compartida. Para una selección parcial que no mute checkouts, combine el
+filtro con el marker:
+
+```powershell
+uv run pytest tests/integration -k lookup -m "not mutates_checkout_state"
+uv run pytest tests/integration -m mutates_checkout_state --collect-only -q
+```
+
+La segunda línea lista las pruebas marcadas. Excluirlas no vuelve inocuo el resto: también crean
+episodios y checkouts y cambian el catálogo de su episodio, así que `tests/integration` solo debe
+correr contra un PostgreSQL desechable.
+
 Feed API incremental y frontend no están implementados. El handler sandbox no procesa
 credenciales reales ni dinero real; este subconjunto no afirma conformidad ACP integral.
 
