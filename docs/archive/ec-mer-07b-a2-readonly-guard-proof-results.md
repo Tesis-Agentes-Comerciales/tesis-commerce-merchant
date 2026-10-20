@@ -1,5 +1,10 @@
 # EC-MER-07B-A2 — Lookup histórico D17
 
+> **Nota 2026-10-20.** Rutas históricas, no se reescriben. El informe estaba en `docs/` y hoy está
+> en `docs/archive/`; el runner Windows `tests/integration/guarded_cluster.py` se retiró y su
+> secuencia es ahora la capa 2 de [docs/testing.md](../testing.md) (`RUN_DB_INTEGRATION=1` contra un
+> PostgreSQL desechable).
+
 ## A. Preflight
 
 Merchant limpio, índice vacío, rama inicial `merchant/ec-mer-07b-d17-atomic-precondition`, HEAD `ab2a0a95e6bee97709fd232fda90206e37e82736`; origin fetch/push `https://github.com/Maldinho18/tesis-commerce-merchant.git`. Rama nueva ausente y creada desde esa base: `merchant/ec-mer-07b-a2-readonly-guard-proof`. Agent permanece en `35fd2d80e6f10150d5f0651b386adaa4eff2d40e`, sin ejecución ni modificaciones.

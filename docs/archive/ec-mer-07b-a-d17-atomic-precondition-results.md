@@ -1,5 +1,10 @@
 # EC-MER-07B-A — Precondición atómica D17
 
+> **Nota 2026-10-20.** Rutas históricas, no se reescriben. El informe estaba en `docs/` y hoy está
+> en `docs/archive/`; el runner Windows `tests/integration/guarded_cluster.py` se retiró y su
+> secuencia es ahora la capa 2 de [docs/testing.md](../testing.md) (`RUN_DB_INTEGRATION=1` contra un
+> PostgreSQL desechable).
+
 ## A. Estado Git y repositorios
 
 Preflight validado: árbol e índice limpios en `merchant/ec-mer-rec-02-readonly-lookup`, HEAD `c5bd8113998f26928f7d2b62771285fe4040d07f`; rama nueva ausente. Se creó desde esa base `merchant/ec-mer-07b-d17-atomic-precondition`. Origin fetch/push sigue siendo `https://github.com/Maldinho18/tesis-commerce-merchant.git`. No hay stage, commit, push, merge ni PR. HEAD conserva la base.

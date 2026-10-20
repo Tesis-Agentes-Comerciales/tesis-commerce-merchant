@@ -1,5 +1,8 @@
 # EC-GOV-06D-A / Merchant — Consulta autenticada de creación ACP
 
+> **Nota 2026-10-20.** Rutas históricas, no se reescriben. Los informes que cita estaban en `docs/`
+> y hoy están en `docs/archive/`, incluido `ec-mer-rec-01-results.md`.
+
 ## A. Git inicial y final
 
 Base exacta verificada: `71f9dba4de4fec96ceee0385c53f797ef9c99cb4`.
