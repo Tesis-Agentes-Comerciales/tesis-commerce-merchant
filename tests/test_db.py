@@ -1,3 +1,4 @@
+import contextlib
 import json
 import sys
 
@@ -81,6 +82,44 @@ def test_run_checkouts_rejects_a_malformed_run_id_before_connecting(
 
     with pytest.raises(ValueError):
         run_checkouts("not-a-run-id")
+
+
+class _Result:
+    def __init__(self, row: tuple[object, ...] | None = None) -> None:
+        self._row = row
+
+    def fetchone(self) -> tuple[object, ...] | None:
+        return self._row
+
+    def fetchall(self) -> list[tuple[object, ...]]:
+        return []
+
+
+class _CountlessConnection:
+    """A run that exists, without checkouts, whose order count query returns no row."""
+
+    def __enter__(self) -> "_CountlessConnection":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        return None
+
+    def transaction(self) -> contextlib.AbstractContextManager[None]:
+        return contextlib.nullcontext()
+
+    def execute(self, query: str, params: object = None) -> _Result:
+        return _Result((1,) if "experiment_runs" in query else None)
+
+
+def test_run_checkouts_fails_explicitly_without_an_order_count(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("commerce_lab.db.core.database_url", lambda: "postgresql://lab")
+    monkeypatch.setattr("commerce_lab.db.core.psycopg.connect", lambda _: _CountlessConnection())
+
+    # Not an assert: it must hold with `python -O` too, and name what is missing.
+    with pytest.raises(RuntimeError, match="order count"):
+        run_checkouts("8d7c5a8e-2f9b-4c1e-9a37-0f1d2c3b4a59")
 
 
 def test_run_checkouts_cli_prints_the_report_as_json(

@@ -299,7 +299,9 @@ def run_checkouts(run_id: str) -> dict[str, object]:
         orders = connection.execute(
             "SELECT count(*) FROM orders WHERE run_id = %s", (parsed_run_id,)
         ).fetchone()
-        assert orders is not None
+        # count(*) always returns a row; without one the report would claim zero orders.
+        if orders is None:
+            raise RuntimeError("Could not read the order count of the run")
     return {
         "operation": "run-checkouts",
         "run_id": str(parsed_run_id),
