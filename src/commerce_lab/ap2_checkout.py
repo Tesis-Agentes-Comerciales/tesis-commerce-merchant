@@ -111,14 +111,20 @@ def _within(value: Any, model: type[Any]) -> bool:
 
 
 def _open_checkout_in_profile(claims: dict[str, Any]) -> bool:
-    """Profile check before parsing: the SDK rejects unknown types and ignores unknown keys."""
+    """Profile check before parsing: the SDK rejects unknown types and ignores unknown keys.
+
+    Fail closed: each checkout constraint of the profile appears exactly once, since the
+    merchant is the only verifier that bounds the merchant and the variant.
+    """
     constraints = claims.get("constraints")
     if not _within(claims, OpenCheckoutMandate) or not isinstance(constraints, list):
         return False
+    seen: list[str] = []
     for constraint in constraints:
         kind = constraint.get("type") if isinstance(constraint, dict) else None
         if kind not in _CHECKOUT_CONSTRAINTS:
             return False
+        seen.append(kind)
         model, members, member_model = _CHECKOUT_CONSTRAINTS[kind]
         entries = constraint.get(members)
         if not _within(constraint, model) or not isinstance(entries, list):
@@ -128,11 +134,14 @@ def _open_checkout_in_profile(claims: dict[str, Any]) -> bool:
                 return False
             if member_model is LineItemRequirements:
                 acceptable = entry.get("acceptable_items")
+                quantity = entry.get("quantity")
                 if not isinstance(acceptable, list) or not acceptable:
                     return False
                 if not all(_within(item, Item) for item in acceptable):
                     return False
-    return True
+                if not _is_int(quantity) or quantity != 1:
+                    return False
+    return sorted(seen) == sorted(_CHECKOUT_CONSTRAINTS)
 
 
 def _is_int(value: object) -> TypeGuard[int]:

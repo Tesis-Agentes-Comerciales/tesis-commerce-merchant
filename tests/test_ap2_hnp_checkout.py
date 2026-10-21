@@ -313,6 +313,25 @@ def _empty_acceptable_items(chain: Chain) -> tuple[str, None]:
     return chain.close(chain.open(claims), chain.checkout_jwt()), None
 
 
+def _constraints(
+    *indexes: int, checkout: dict[str, Any] | None = None
+) -> Callable[[Chain], tuple[str, dict[str, Any] | None]]:
+    """Open mandate with only (or repeated) profile constraints, by index in `open_claims`."""
+
+    def build(chain: Chain) -> tuple[str, dict[str, Any] | None]:
+        claims = chain.open_claims()
+        claims["constraints"] = [claims["constraints"][index] for index in indexes]
+        return chain.close(chain.open(claims), chain.checkout_jwt(checkout)), checkout
+
+    return build
+
+
+def _two_units_required(chain: Chain) -> tuple[str, None]:
+    claims = chain.open_claims()
+    claims["constraints"][1]["items"][0]["quantity"] = 2
+    return chain.close(chain.open(claims), chain.checkout_jwt()), None
+
+
 def _untitled_acceptable_item(chain: Chain) -> tuple[str, None]:
     claims = chain.open_claims()
     del claims["constraints"][1]["items"][0]["acceptable_items"][0]["title"]
@@ -381,6 +400,17 @@ def _payment_chain(chain: Chain) -> tuple[str, None]:
         pytest.param(
             _untitled_acceptable_item, "unresolved_constraint", id="acceptable-item-without-title"
         ),
+        # Each profile checkout constraint exactly once: the merchant alone bounds merchant and
+        # variant (the PSP does not evaluate checkout.*).
+        pytest.param(_constraints(), "unresolved_constraint", id="no-constraints"),
+        pytest.param(
+            _constraints(0, checkout=_checkout(variant="Q999-OTHER")),
+            "unresolved_constraint",
+            id="only-allowed-merchants-variant-out-of-scope",
+        ),
+        pytest.param(_constraints(1), "unresolved_constraint", id="only-line-items"),
+        pytest.param(_constraints(0, 1, 1), "unresolved_constraint", id="duplicated-type"),
+        pytest.param(_two_units_required, "unresolved_constraint", id="line-items-quantity-2"),
         pytest.param(
             _with_claims(checkout_hash="A" * 43), "unresolved_constraint", id="prefixed-claim"
         ),
