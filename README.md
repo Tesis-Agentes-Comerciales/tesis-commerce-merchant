@@ -60,6 +60,13 @@ El namespace Python sigue siendo `commerce_lab`.
   `POST /checkout_sessions/{id}/ap2/complete` verifica Checkout Mandate, hash, instantánea y
   revisión antes de completar. Devuelve un Checkout Receipt firmado. Las rutas `/ap2/*` son
   puentes experimentales sobre ACP, no rutas estándar ACP ni conformidad AP2 integral.
+- Perfil AP2 Human Not Present (`ap2-hnp/v1`, `docs/ap2-profile.md` del repo del agente): si
+  `checkout_mandate` es una cadena `<abierto>~~<cerrado>`, `/ap2/complete` la verifica con la
+  misma JWK del proveedor del agente (`MERCHANT_AP2_AGENT_JWK_JSON`) como raíz, proyecta el
+  checkout ACP al `Checkout` del SDK y evalúa `checkout.allowed_merchants` y
+  `checkout.line_items`. Un rechazo responde 422 `{"code", "checkout_receipt_jwt"}` con un
+  recibo de error AP2 firmado; sin AP2 configurado, 503 `{"code": "mandates_not_supported"}` sin
+  recibo. Sin variables nuevas: el comercio es `PAYMENT_MERCHANT_ID`.
 
 Los errores públicos ACP usan códigos en minúsculas, incluidos
 `missing_api_version`, `unsupported_api_version` y `payment_declined`.
