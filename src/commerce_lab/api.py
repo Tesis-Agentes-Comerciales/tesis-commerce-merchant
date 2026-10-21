@@ -20,6 +20,8 @@ from commerce_lab.acp import (
 )
 from commerce_lab.ap2_checkout import (
     AP2_VERSION,
+    CHAIN_SEPARATOR,
+    Ap2MandateError,
     MerchantCheckoutSigner,
     configured_checkout_signer,
 )
@@ -57,6 +59,15 @@ logger = logging.getLogger(__name__)
 class Ap2CompleteRequest(BaseModel):
     checkout_mandate: str = Field(min_length=1, max_length=32_768)
     payment_data: dict[str, Any]
+
+
+class _Ap2ChainRejected(Exception):
+    """An HNP chain answer with the AP2 profile body: `{"code", "checkout_receipt_jwt"?}`."""
+
+    def __init__(self, status_code: int, content: dict[str, str]) -> None:
+        super().__init__(content["code"])
+        self.status_code = status_code
+        self.content = content
 
 
 app = FastAPI(
@@ -494,6 +505,48 @@ def checkout_session_complete(
     return result
 
 
+@app.exception_handler(_Ap2ChainRejected)
+async def ap2_chain_rejected(_: Request, error: _Ap2ChainRejected) -> JSONResponse:
+    return JSONResponse(
+        error.content, status_code=error.status_code, headers={"Cache-Control": "no-store"}
+    )
+
+
+def _verify_hnp_chain(
+    signer: MerchantCheckoutSigner,
+    chain: str,
+    *,
+    checkout: dict[str, Any],
+    revision: int,
+    trusted_key: str,
+    merchant_id: str,
+) -> tuple[int, str]:
+    try:
+        approved_revision, reference = signer.verify_mandate_chain(
+            chain,
+            checkout=checkout,
+            trusted_agent_jwk_json=trusted_key,
+            merchant_id=merchant_id,
+        )
+        if checkout.get("status") == "completed" and approved_revision + 1 != revision:
+            raise Ap2MandateError(
+                "invalid_mandate",
+                "The closed mandate is not from the completed revision.",
+                reference,
+            )
+    except Ap2MandateError as error:
+        logger.warning("AP2 checkout mandate chain rejected: %s", error.code)
+        if error.code == "mandates_not_supported":
+            raise _Ap2ChainRejected(503, {"code": error.code}) from error
+        receipt = signer.error_receipt(
+            reference=error.reference, error=error.code, description=error.description
+        )
+        raise _Ap2ChainRejected(
+            422, {"code": error.code, "checkout_receipt_jwt": receipt}
+        ) from error
+    return approved_revision, reference
+
+
 @app.post("/checkout_sessions/{checkout_id}/ap2/complete")
 def checkout_session_ap2_complete(
     checkout_id: Identifier,
@@ -508,7 +561,11 @@ def checkout_session_ap2_complete(
 ) -> dict[str, object]:
     settings = get_settings()
     trusted_key = settings.merchant_ap2_agent_jwk_json
+    # A `~~` chain is a Human Not Present mandate (docs/ap2-profile.md); anything else is HP.
+    hnp_chain = CHAIN_SEPARATOR in payload.checkout_mandate
     if not settings.merchant_ap2_required or trusted_key is None:
+        if hnp_chain:
+            raise _Ap2ChainRejected(503, {"code": "mandates_not_supported"})
         raise HTTPException(status_code=503, detail="AP2 completion is not configured")
     if not idempotency_key or len(idempotency_key) > 255:
         raise HTTPException(status_code=400, detail="Idempotency-Key is required")
@@ -516,18 +573,28 @@ def checkout_session_ap2_complete(
     if isinstance(current, Failure):
         _raise_commerce_failure(current, request=request)
     snapshot, revision = current
-    try:
-        approved_revision, reference = signer.verify_mandate(
+    if hnp_chain:
+        approved_revision, reference = _verify_hnp_chain(
+            signer,
             payload.checkout_mandate,
             checkout=snapshot,
-            trusted_agent_jwk_json=trusted_key.get_secret_value(),
+            revision=revision,
+            trusted_key=trusted_key.get_secret_value(),
+            merchant_id=settings.payment_merchant_id,
         )
-    except ValueError as error:
-        raise HTTPException(status_code=422, detail="Invalid AP2 checkout mandate") from error
-    if snapshot.get("status") == "completed" and approved_revision + 1 != revision:
-        raise HTTPException(
-            status_code=422, detail="AP2 mandate is not from the completed revision"
-        )
+    else:
+        try:
+            approved_revision, reference = signer.verify_mandate(
+                payload.checkout_mandate,
+                checkout=snapshot,
+                trusted_agent_jwk_json=trusted_key.get_secret_value(),
+            )
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail="Invalid AP2 checkout mandate") from error
+        if snapshot.get("status") == "completed" and approved_revision + 1 != revision:
+            raise HTTPException(
+                status_code=422, detail="AP2 mandate is not from the completed revision"
+            )
     result = checkout.complete(
         checkout_id,
         {"payment_data": payload.payment_data},
