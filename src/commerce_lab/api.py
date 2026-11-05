@@ -25,7 +25,11 @@ from commerce_lab.ap2_checkout import (
     MerchantCheckoutSigner,
     configured_checkout_signer,
 )
-from commerce_lab.context import InvalidLabSession, authenticate_lab_session
+from commerce_lab.context import (
+    InvalidLabSession,
+    LabSessionStoreUnavailable,
+    authenticate_lab_session,
+)
 from commerce_lab.contracts import (
     ACP_VERSION,
     CatalogSearchData,
@@ -283,6 +287,16 @@ def trusted_context(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="A valid synthetic lab session is required.",
+        ) from error
+    except LabSessionStoreUnavailable as error:
+        code = "lab_session_store_unavailable"
+        request.state.observation_error_code = code
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "code": code,
+                "message": "Lab session verification is temporarily unavailable.",
+            },
         ) from error
     trusted = context.model_copy(update={"request_id": request.state.request_id})
     request.state.observation_run_id = trusted.run_id

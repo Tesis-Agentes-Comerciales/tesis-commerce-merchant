@@ -1,4 +1,5 @@
 import hashlib
+import re
 import secrets
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
@@ -11,6 +12,21 @@ from commerce_lab.db import database_url
 
 class InvalidLabSession(ValueError):
     """Raised when a synthetic lab credential is absent, expired, or revoked."""
+
+
+class LabSessionStoreUnavailable(RuntimeError):
+    """The TCP connection to the session store was refused before authentication."""
+
+
+# libpq supplies no SQLSTATE for a local TCP refusal. Match the single observed
+# diagnostic, excluding server FATAL errors and mixed multi-address failures.
+_CONNECTION_REFUSED = re.compile(
+    r'connection failed: connection to server at "[^"\r\n]+"'
+    r"(?: \([^()\r\n]+\))?, port \d+ failed: "
+    r"(?:Connection refused\n\s*Is the server running on that host "
+    r"and accepting TCP/IP connections\?"
+    r"|could not receive data from server: Connection refused)"
+)
 
 
 def _sha256(value: str) -> str:
@@ -49,7 +65,14 @@ def authenticate_lab_session(token: str) -> ExecutionContext:
 
     if not token or len(token) > 512:
         raise InvalidLabSession("Invalid lab session")
-    with psycopg.connect(database_url()) as connection, connection.transaction():
+    dsn = database_url()
+    try:
+        opened = psycopg.connect(dsn)
+    except psycopg.OperationalError as error:
+        if error.sqlstate is None and _CONNECTION_REFUSED.fullmatch(str(error).strip()):
+            raise LabSessionStoreUnavailable("Lab session store is unavailable") from error
+        raise
+    with opened as connection, connection.transaction():
         row = connection.execute(
             """
             SELECT session.run_id, session.actor_id
