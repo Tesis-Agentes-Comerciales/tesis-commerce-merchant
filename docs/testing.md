@@ -41,6 +41,20 @@ docker rm --force --volumes merchant-test-pg
 ```
 
 Las suites D17 rechazan cualquier clúster cuyo `data_directory` no sea `RECOVERY_TEST_CLUSTER`.
+
+La prueba de indisponibilidad INF31 se ejecuta explícitamente al final del job
+`integration`. Usa HTTP real y detiene únicamente el contenedor PostgreSQL
+desechable de ese job, después de comprobar el puerto y el directorio de datos.
+Comprueba el 503 nativo con `Request-Id` del servidor, reinicia PostgreSQL y
+contrasta los estados persistidos. El intento de auditoría durante la caída
+queda en el log del servicio, sin fila persistida. El job conserva JUnit y su
+SHA-256 y exige que el caso se ejecute y apruebe.
+
+La clasificación de INF31 cubre la negativa TCP observada al abrir la conexión
+para verificar la sesión. El diagnóstico de libpq carece de SQLSTATE en ese
+caso. Se reconoce la forma observada en el laboratorio en inglés. Los fallos
+de autenticación de la base, los diagnósticos ambiguos y los errores de consulta
+o transacción conservan el tratamiento anterior.
 Para repetir la capa 2, recree el contenedor: la prueba de migraciones solo pasa sobre una base
 vacía.
 

@@ -134,9 +134,33 @@ jobs:
           uv run pytest -p pytest_cov --cov --cov-append --cov-report=term --cov-fail-under=85 --ignore=tests/integration/test_migration_tracking.py
 
       - name: INF31 real PostgreSQL outage over HTTP
+        id: inf31-outage
         env:
           INF31_POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
-        run: uv run pytest -vv -s tests/integration/inf31_postgres_outage.py
+        run: |
+          status=0
+          uv run pytest -vv -s tests/integration/inf31_postgres_outage.py \
+            --junitxml="$RUNNER_TEMP/inf31-merchant-junit.xml" || status=$?
+          (cd "$RUNNER_TEMP" && sha256sum inf31-merchant-junit.xml > inf31-merchant-SHA256SUMS)
+          test "$status" -eq 0
+          uv run python - "$RUNNER_TEMP/inf31-merchant-junit.xml" <<'PY'
+          import sys
+          from xml.etree import ElementTree
+
+          cases = ElementTree.parse(sys.argv[1]).findall(".//testcase")
+          if len(cases) != 1 or len(cases[0]):
+              raise SystemExit("The required INF31 live case did not pass")
+          PY
+
+      - name: Preserve INF31 outage test evidence
+        if: ${{ !cancelled() && steps.inf31-outage.outcome != 'skipped' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: inf31-merchant-evidence
+          path: |
+            ${{ runner.temp }}/inf31-merchant-junit.xml
+            ${{ runner.temp }}/inf31-merchant-SHA256SUMS
+          if-no-files-found: error
 
       - name: Coverage summary
         if: ${{ !cancelled() }}

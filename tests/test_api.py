@@ -1,6 +1,8 @@
 from dataclasses import asdict
+from unittest.mock import MagicMock
 from uuid import UUID
 
+import psycopg
 import pytest
 from fastapi import HTTPException, Request
 from fastapi.testclient import TestClient
@@ -183,6 +185,55 @@ def test_observation_writer_failure_does_not_change_commercial_response(monkeypa
     assert response.status_code == 401
     UUID(response.headers["Request-Id"])
     assert response.json()["detail"] == "A valid synthetic lab session is required."
+
+
+_LIBPQ_REFUSAL = (
+    'connection failed: connection to server at "127.0.0.1", port 55433 failed: '
+    "Connection refused\n"
+    "\tIs the server running on that host and accepting TCP/IP connections?"
+)
+
+
+@pytest.mark.parametrize(
+    ("stage", "error", "expected"),
+    [
+        ("connect", psycopg.OperationalError(_LIBPQ_REFUSAL), 503),
+        ("connect", psycopg.OperationalError("FATAL: password authentication failed"), 500),
+        ("connect", psycopg.OperationalError("FATAL: database does not exist"), 500),
+        ("connect", psycopg.OperationalError(_LIBPQ_REFUSAL + "\nFATAL: denied"), 500),
+        ("connect", RuntimeError("internal failure"), 500),
+        ("lookup", psycopg.OperationalError(_LIBPQ_REFUSAL), 500),
+        ("lookup", psycopg.errors.SerializationFailure("transaction failed"), 500),
+    ],
+)
+def test_session_store_classification(monkeypatch, stage, error, expected) -> None:
+    observations: list[RequestObservation] = []
+    connect = MagicMock()
+    if stage == "connect":
+        connect.side_effect = error
+    else:
+        connect.return_value.execute.side_effect = error
+    monkeypatch.setattr("commerce_lab.context.psycopg.connect", connect)
+    monkeypatch.setattr("commerce_lab.api.write_request_observation", observations.append)
+    response = TestClient(app, raise_server_exceptions=False).post(
+        "/checkout_sessions",
+        headers={"Authorization": "Bearer synthetic", "API-Version": "2026-04-17"},
+        json={},
+    )
+    assert response.status_code == expected
+    assert connect.call_count == 1
+    assert len(observations) == 1
+    observation = observations[0]
+    assert observation.http_status == expected
+    assert observation.run_id is observation.actor_id is None
+    if expected == 503:
+        assert response.json()["detail"]["code"] == "lab_session_store_unavailable"
+        assert observation.error_code == "lab_session_store_unavailable"
+        assert observation.request_id == response.headers["Request-Id"]
+        assert "127.0.0.1" not in response.text
+    else:
+        assert response.text == "Internal Server Error"
+        assert observation.error_code is None
 
 
 def test_request_ids_are_unique_and_client_request_id_is_ignored() -> None:

@@ -6,9 +6,8 @@ import subprocess
 import threading
 from collections.abc import Iterator
 from time import monotonic, sleep
-from traceback import extract_tb
 from urllib.parse import urlsplit
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
 import psycopg
@@ -27,8 +26,11 @@ TABLES = (
     "guarded_checkout_creations",
     "rejected_guarded_checkout_attempts",
     "orders",
+    "webhook_deliveries",
+    "webhook_delivery_attempts",
     "run_events",
     "catalog_offers",
+    "lab_sessions",
     "request_observations",
 )
 
@@ -92,31 +94,57 @@ def test_inf31_checkout_when_postgres_is_stopped(
     assert live_http.get("/health/ready").status_code == 200
     actor = "inf31-" + uuid4().hex
     run_id = str(seed(actor_id=actor, variant="B0")["run_id"])
-    token = issue_lab_session(run_id, actor)
+    revoked = issue_lab_session(run_id, actor)
     with psycopg.connect(database_url()) as connection:
+        assert (
+            connection.execute(
+                "UPDATE lab_sessions SET revoked_at=now() WHERE run_id=%s", (run_id,)
+            ).rowcount
+            == 1
+        )
         offer = connection.execute(
             "SELECT offer_id FROM catalog_offers WHERE run_id=%s AND "
             "snapshot->>'availability'='in_stock' ORDER BY offer_id LIMIT 1",
             (run_id,),
         ).fetchone()
         assert offer is not None
+    token = issue_lab_session(run_id, actor)
+    headers = {"API-Version": "2026-04-17", "Idempotency-Key": "inf31-outage"}
+    body = {
+        "line_items": [{"id": offer[0]}],
+        "currency": "cop",
+        "capabilities": {"payment": {"handlers": []}},
+    }
+    for bearer in (None, "unknown-synthetic-session", revoked):
+        auth = {"Authorization": "Bearer " + bearer} if bearer is not None else {}
+        denied = live_http.post("/checkout_sessions", headers=headers | auth, json=body)
+        assert denied.status_code == 401
+        assert denied.json()["detail"] == "A valid synthetic lab session is required."
+        UUID(denied.headers["Request-Id"])
+    assert (
+        live_http.get(
+            "/checkout_sessions/inf31-absent",
+            headers=headers | {"Authorization": "Bearer " + token},
+        ).status_code
+        == 404
+    )
+
     before = _snapshot(cluster)
     try:
         _docker("stop", container)
         assert _docker("inspect", "-f", "{{.State.Running}}", container) == "false"
+        assert (
+            live_http.post("/lab/catalog/search", json={"category": "smartphones"}).status_code
+            == 401
+        )
         response = live_http.post(
             "/checkout_sessions",
-            headers={
+            headers=headers
+            | {
                 "Authorization": "Bearer " + token,
-                "API-Version": "2026-04-17",
-                "Idempotency-Key": "inf31-outage",
                 "Request-Id": "untrusted",
             },
-            json={
-                "line_items": [{"id": offer[0]}],
-                "currency": "cop",
-                "capabilities": {"payment": {"handlers": []}},
-            },
+            json=body,
         )
     finally:
         _docker("start", container)
@@ -126,24 +154,23 @@ def test_inf31_checkout_when_postgres_is_stopped(
             sleep(0.25)
         assert _snapshot(cluster) == before
 
-    assert response.status_code == 500
-    assert response.text == "Internal Server Error"
-    assert "Request-Id" not in response.headers
-    unhandled = [
+    assert response.status_code == 503
+    request_id = response.headers["Request-Id"]
+    assert UUID(request_id).version == 4
+    assert response.json() == {
+        "detail": {
+            "code": "lab_session_store_unavailable",
+            "message": "Lab session verification is temporarily unavailable.",
+        }
+    }
+    failed_writes = [
         record
         for record in caplog.records
-        if record.name == "uvicorn.error" and record.exc_info is not None
+        if record.getMessage() == "Failed to persist checkout request observation"
+        and getattr(record, "request_id", None) == request_id
     ]
-    assert len(unhandled) == 1 and unhandled[0].exc_info is not None
-    error = unhandled[0].exc_info[1]
-    assert type(error) is psycopg.OperationalError
-    assert error.sqlstate is None
-    assert "Connection refused" in str(error)
-    frames = [frame.name for frame in extract_tb(unhandled[0].exc_info[2])]
-    assert "trusted_context" in frames and "authenticate_lab_session" in frames
-    assert any(
-        record.message == "Failed to persist checkout request observation"
-        for record in caplog.records
-    )
-    print("PG ready → stopped → restored; OperationalError/SQLSTATE=None; HTTP 500/no Request-Id")
+    assert len(failed_writes) == 1
+    assert not any(record.name == "uvicorn.error" and record.exc_info for record in caplog.records)
+    print("PG ready → stopped → restored; native HTTP 503; generated Request-Id:", request_id)
+    print("Missing/unknown/revoked credentials while ready and missing while stopped: HTTP 401")
     print("Commercial state and request_observations unchanged; observation write failed")
