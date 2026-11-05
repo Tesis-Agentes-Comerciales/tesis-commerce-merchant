@@ -193,16 +193,25 @@ _LIBPQ_REFUSAL = (
     "\tIs the server running on that host and accepting TCP/IP connections?"
 )
 
+_LIBPQ_MACOS_REFUSAL = (
+    'connection failed: connection to server at "127.0.0.1", port 55433 failed: '
+    "could not receive data from server: Connection refused"
+)
+
 
 @pytest.mark.parametrize(
     ("stage", "error", "expected"),
     [
         ("connect", psycopg.OperationalError(_LIBPQ_REFUSAL), 503),
+        ("connect", psycopg.OperationalError(_LIBPQ_MACOS_REFUSAL), 503),
+        ("connect", psycopg.OperationalError(_LIBPQ_MACOS_REFUSAL + "\nFATAL: denied"), 500),
+        ("connect", psycopg.OperationalError(_LIBPQ_MACOS_REFUSAL + "\n" + _LIBPQ_REFUSAL), 500),
         ("connect", psycopg.OperationalError("FATAL: password authentication failed"), 500),
         ("connect", psycopg.OperationalError("FATAL: database does not exist"), 500),
         ("connect", psycopg.OperationalError(_LIBPQ_REFUSAL + "\nFATAL: denied"), 500),
         ("connect", RuntimeError("internal failure"), 500),
         ("lookup", psycopg.OperationalError(_LIBPQ_REFUSAL), 500),
+        ("lookup", psycopg.OperationalError(_LIBPQ_MACOS_REFUSAL), 500),
         ("lookup", psycopg.errors.SerializationFailure("transaction failed"), 500),
     ],
 )

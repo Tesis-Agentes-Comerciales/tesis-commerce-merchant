@@ -55,6 +55,9 @@ para verificar la sesión. El diagnóstico de libpq carece de SQLSTATE en ese
 caso. Se reconoce la forma observada en el laboratorio en inglés. Los fallos
 de autenticación de la base, los diagnósticos ambiguos y los errores de consulta
 o transacción conservan el tratamiento anterior.
+La forma local de macOS que informa `could not receive data from server: Connection refused`
+también se reconoce solo durante la apertura de autenticación, sin reclasificar errores mixtos.
+
 Para repetir la capa 2, recree el contenedor: la prueba de migraciones solo pasa sobre una base
 vacía.
 

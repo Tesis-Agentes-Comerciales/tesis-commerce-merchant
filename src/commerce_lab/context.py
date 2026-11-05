@@ -22,8 +22,9 @@ class LabSessionStoreUnavailable(RuntimeError):
 # diagnostic, excluding server FATAL errors and mixed multi-address failures.
 _CONNECTION_REFUSED = re.compile(
     r'connection failed: connection to server at "[^"\r\n]+"'
-    r"(?: \([^()\r\n]+\))?, port \d+ failed: Connection refused\n"
-    r"\s*Is the server running on that host and accepting TCP/IP connections\?"
+    r"(?: \([^()\r\n]+\))?, port \d+ failed: "
+    r"(?:Connection refused\n\s*Is the server running on that host and accepting TCP/IP connections\?"
+    r"|could not receive data from server: Connection refused)"
 )
 
 
