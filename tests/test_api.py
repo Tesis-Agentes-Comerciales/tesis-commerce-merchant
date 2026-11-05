@@ -212,7 +212,7 @@ def test_session_store_classification(monkeypatch, stage, error, expected) -> No
     if stage == "connect":
         connect.side_effect = error
     else:
-        connect.return_value.execute.side_effect = error
+        connect.return_value.__enter__.return_value.execute.side_effect = error
     monkeypatch.setattr("commerce_lab.context.psycopg.connect", connect)
     monkeypatch.setattr("commerce_lab.api.write_request_observation", observations.append)
     response = TestClient(app, raise_server_exceptions=False).post(

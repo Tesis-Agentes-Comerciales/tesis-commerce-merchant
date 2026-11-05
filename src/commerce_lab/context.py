@@ -65,12 +65,12 @@ def authenticate_lab_session(token: str) -> ExecutionContext:
         raise InvalidLabSession("Invalid lab session")
     dsn = database_url()
     try:
-        connection = psycopg.connect(dsn)
+        opened = psycopg.connect(dsn)
     except psycopg.OperationalError as error:
         if error.sqlstate is None and _CONNECTION_REFUSED.fullmatch(str(error).strip()):
             raise LabSessionStoreUnavailable("Lab session store is unavailable") from error
         raise
-    with connection, connection.transaction():
+    with opened as connection, connection.transaction():
         row = connection.execute(
             """
             SELECT session.run_id, session.actor_id
