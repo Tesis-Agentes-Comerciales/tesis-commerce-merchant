@@ -257,7 +257,7 @@ export function ProductDetail({
                 <p className="flex items-start gap-2.5">
                   <Truck className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
                   {terms.shipping_total_minor === 0 ? "Envío gratis" : `Envío por ${shippingText}`}.{" "}
-                  {arrivalText(terms.delivery_days)}. El checkout mantiene este costo y este plazo.
+                  {arrivalText(terms.delivery_days)}. El checkout usa este costo y este plazo.
                 </p>
               )}
               <p className="flex items-start gap-2.5">
