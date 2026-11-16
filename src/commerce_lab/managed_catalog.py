@@ -3,6 +3,7 @@
 import argparse
 import json
 from datetime import UTC, datetime, timedelta
+from typing import Any, Literal, get_args
 from uuid import UUID, uuid4
 
 import psycopg
@@ -11,10 +12,14 @@ from psycopg.types.json import Jsonb
 from commerce_lab.contracts import Offer
 from commerce_lab.db import database_url
 from commerce_lab.fixtures import fresh_p0_offers
+from commerce_lab.fixtures.ampliado import ampliado_offers
 
 MANAGED_CATALOG_VERSION = "merchant-catalog-v1"
 MANAGED_ACTOR_ID = "merchant-agent"
 OFFER_LIFETIME = timedelta(days=365)
+# `p0` es el predeterminado en todas partes. `ampliado` es opt-in para la vitrina y la demo.
+CatalogName = Literal["p0", "ampliado"]
+CATALOGS: tuple[CatalogName, ...] = get_args(CatalogName)
 
 
 def _timestamp(value: datetime) -> str:
@@ -29,19 +34,29 @@ def managed_catalog_context() -> tuple[UUID, str] | None:
     return (row[0], row[1]) if row is not None else None
 
 
-def import_current_catalog() -> dict[str, object]:
-    """Import the curated assortment once; restarts never regenerate price or inventory."""
+def import_current_catalog(catalog: CatalogName = "p0") -> dict[str, object]:
+    """Import the curated assortment once; restarts never regenerate price or inventory.
+
+    `ampliado` is opt-in. On a merchant that already has a catalog it only inserts the offers
+    that are missing, so existing prices and stock stay as they are; p0 keeps today's behavior.
+    """
+    if catalog not in CATALOGS:
+        raise ValueError(f"Unknown catalog {catalog!r}")
     with psycopg.connect(database_url()) as connection, connection.transaction():
         connection.execute("SELECT pg_advisory_xact_lock(hashtext('merchant-catalog-import'))")
         existing = connection.execute(
             "SELECT run_id FROM experiment_runs WHERE variant = 'merchant'"
         ).fetchone()
         if existing is not None:
+            if catalog == "ampliado":
+                return _add_missing_offers(connection, existing[0], ampliado_offers())
             return {"status": "already_imported", "run_id": str(existing[0])}
         now = datetime.now(UTC)
-        offers = fresh_p0_offers()
+        offers = ampliado_offers() if catalog == "ampliado" else fresh_p0_offers()
         run_id = uuid4()
-        manifest = {"source": "curated-assortment", "offer_count": len(offers)}
+        manifest: dict[str, object] = {"source": "curated-assortment", "offer_count": len(offers)}
+        if catalog == "ampliado":
+            manifest["catalog"] = "ampliado"
         connection.execute(
             """
             INSERT INTO experiment_runs
@@ -57,19 +72,52 @@ def import_current_catalog() -> dict[str, object]:
                 MANAGED_ACTOR_ID,
             ),
         )
-        for offer in offers:
-            snapshot = offer.model_dump(mode="json")
-            snapshot["observed_at"] = _timestamp(now)
-            snapshot["expires_at"] = _timestamp(now + OFFER_LIFETIME)
-            imported = Offer.model_validate(snapshot)
-            connection.execute(
-                """
-                INSERT INTO catalog_offers (run_id, offer_id, revision, snapshot)
-                VALUES (%s, %s, %s, %s)
-                """,
-                (run_id, imported.id, imported.revision, Jsonb(imported.model_dump(mode="json"))),
-            )
+        _insert_offers(connection, run_id, offers, now)
     return {"status": "imported", "run_id": str(run_id), "offer_count": len(offers)}
+
+
+def _insert_offers(
+    connection: psycopg.Connection[Any], run_id: UUID, offers: list[Offer], now: datetime
+) -> None:
+    for offer in offers:
+        snapshot = offer.model_dump(mode="json")
+        snapshot["observed_at"] = _timestamp(now)
+        snapshot["expires_at"] = _timestamp(now + OFFER_LIFETIME)
+        imported = Offer.model_validate(snapshot)
+        connection.execute(
+            """
+            INSERT INTO catalog_offers (run_id, offer_id, revision, snapshot)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (run_id, imported.id, imported.revision, Jsonb(imported.model_dump(mode="json"))),
+        )
+
+
+def _add_missing_offers(
+    connection: psycopg.Connection[Any], run_id: UUID, offers: list[Offer]
+) -> dict[str, object]:
+    """Extend an existing managed catalog without touching the offers it already has."""
+    present = {
+        row[0]
+        for row in connection.execute(
+            "SELECT offer_id FROM catalog_offers WHERE run_id = %s", (run_id,)
+        ).fetchall()
+    }
+    missing = [offer for offer in offers if offer.id not in present]
+    if not missing:
+        return {"status": "already_imported", "run_id": str(run_id)}
+    _insert_offers(connection, run_id, missing, datetime.now(UTC))
+    offer_count = len(present) + len(missing)
+    connection.execute(
+        "UPDATE experiment_runs SET manifest = manifest || %s WHERE run_id = %s",
+        (Jsonb({"catalog": "ampliado", "offer_count": offer_count}), run_id),
+    )
+    return {
+        "status": "extended",
+        "run_id": str(run_id),
+        "added_offer_count": len(missing),
+        "offer_count": offer_count,
+    }
 
 
 def changed_offer(
@@ -135,14 +183,16 @@ def update_offer(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Administer the merchant's persistent catalog")
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("import-current")
+    importer = commands.add_parser("import-current")
+    # Explícito a propósito: este comando nunca elige el ampliado por omisión ni por entorno.
+    importer.add_argument("--catalog", choices=CATALOGS, default="p0")
     change = commands.add_parser("update-offer")
     change.add_argument("offer_id")
     change.add_argument("--price-minor", type=int)
     change.add_argument("--stock", type=int)
     arguments = parser.parse_args()
     if arguments.command == "import-current":
-        result = import_current_catalog()
+        result = import_current_catalog(arguments.catalog)
     else:
         offer = update_offer(
             arguments.offer_id, price_minor=arguments.price_minor, stock=arguments.stock

@@ -283,10 +283,10 @@ def _variant_specs(
 
 
 @lru_cache
-def _snapshot() -> list[dict[str, Any]]:
-    if not SNAPSHOT_PATH.exists():
+def _snapshot(path: Path = SNAPSHOT_PATH) -> list[dict[str, Any]]:
+    if not path.exists():
         return []
-    document = json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
+    document = json.loads(path.read_text(encoding="utf-8"))
     products: list[dict[str, Any]] = document.get("products", [])
     # Un producto sin foto descargada no entra al catálogo: una tarjeta vacía se ve peor que
     # un catálogo más corto. Las fotos se traen con scripts/catalog/fetch_product_images.py.
@@ -298,10 +298,15 @@ def _snapshot() -> list[dict[str, Any]]:
 
 
 def build_generated_offers(
-    *, delivery_context: DeliveryContext, observed_at: str, expires_at: str
+    *,
+    delivery_context: DeliveryContext,
+    observed_at: str,
+    expires_at: str,
+    snapshot_path: Path = SNAPSHOT_PATH,
 ) -> list[Offer]:
+    """Ofertas de un snapshot; por omisión el de P0. El catálogo ampliado pasa el suyo."""
     offers: list[Offer] = []
-    for product in _snapshot():
+    for product in _snapshot(snapshot_path):
         entity = str(product["entity"])
         category = str(product["category"])
         brand = _brand_of(product)

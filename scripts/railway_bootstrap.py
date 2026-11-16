@@ -2,6 +2,8 @@
 
 The curated assortment is imported only when the store is empty. Restarts never reset edits to
 price or inventory. Only a hash of the agent's Bearer credential is stored.
+`MERCHANT_CATALOG=ampliado` opts the demo into the expanded assortment, adding the models it lacks
+to an existing store; without it the store keeps the p0 assortment.
 """
 
 from __future__ import annotations
@@ -16,7 +18,11 @@ from psycopg import sql
 
 from commerce_lab.db import database_url
 from commerce_lab.db.core import migrate
-from commerce_lab.managed_catalog import import_current_catalog, managed_catalog_context
+from commerce_lab.managed_catalog import (
+    CATALOGS,
+    import_current_catalog,
+    managed_catalog_context,
+)
 
 SESSION_TTL_DAYS = 365
 
@@ -38,13 +44,16 @@ def _ensure_database() -> None:
 
 
 def main() -> None:
+    catalog = os.environ.get("MERCHANT_CATALOG") or "p0"
+    if catalog not in CATALOGS:
+        raise RuntimeError(f"MERCHANT_CATALOG must be one of {', '.join(CATALOGS)}")
     _ensure_database()
     print(migrate(), flush=True)
-    print({"operation": "catalog-import", **import_current_catalog()}, flush=True)
-    catalog = managed_catalog_context()
-    if catalog is None:
+    print({"operation": "catalog-import", **import_current_catalog(catalog)}, flush=True)
+    managed = managed_catalog_context()
+    if managed is None:
         raise RuntimeError("Merchant catalog is unavailable")
-    run_id, actor_id = catalog
+    run_id, actor_id = managed
 
     token = os.environ.get("MERCHANT_AGENT_BEARER_TOKEN")
     if not token:
