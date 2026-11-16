@@ -50,6 +50,9 @@ El namespace Python sigue siendo `commerce_lab`.
 - `GET /feeds/current` publica una instantánea completa del Product Feed desde
   PostgreSQL. Su forma `{metadata, products}` es una ruta de publicación propia,
   no un endpoint normativo de ACP. Feed API incremental no está implementada.
+- `GET /storefront/catalog` devuelve ese mismo `{metadata, products}` más `delivery`: por id de
+  variante, `shipping_total_minor`, `total_minor` y `delivery_days`. El Product ACP no tiene
+  campo de envío ni admite campos propios, así que el envío viaja aparte y el feed sigue intacto.
 - Perfil AP2 v0.2 Human Present: `GET /checkout_sessions/{id}/ap2/checkout-jwt` emite un JWT ES256
   firmado por el merchant para un checkout `ready_for_payment` del mismo actor/episodio.
   `GET /.well-known/ap2/jwks.json` publica la clave verificadora. Configure

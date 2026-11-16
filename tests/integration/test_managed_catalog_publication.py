@@ -32,6 +32,26 @@ def test_managed_catalog_import_is_idempotent_and_published() -> None:
     assert len(response.json()["products"]) == len(products)
 
 
+def test_storefront_catalog_adds_delivery_terms_from_the_published_snapshot() -> None:
+    migrate()
+    import_current_catalog()
+    client = TestClient(app)
+
+    feed = client.get("/feeds/current")
+    storefront = client.get("/storefront/catalog")
+
+    assert feed.status_code == storefront.status_code == 200
+    assert set(feed.json()) == {"metadata", "products"}
+    assert storefront.json()["products"] == feed.json()["products"]
+    delivery = storefront.json()["delivery"]
+    assert delivery["Q100286751-256GB"] == {
+        "shipping_total_minor": 25_000_00,
+        "total_minor": 1_335_000_00,
+        "delivery_days": 4,
+    }
+    assert delivery["Q138529589-256GB"]["shipping_total_minor"] == 0
+
+
 @pytest.mark.mutates_checkout_state
 def test_managed_catalog_checkout_uses_live_clock_and_cop() -> None:
     migrate()

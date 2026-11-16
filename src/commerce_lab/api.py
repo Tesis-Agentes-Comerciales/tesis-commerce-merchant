@@ -44,7 +44,7 @@ from commerce_lab.contracts import (
 from commerce_lab.creation_lookup_api import creation_lookup_router
 from commerce_lab.db import DatabaseNotReady, check_database_ready, database_url
 from commerce_lab.discovery import discovery_document
-from commerce_lab.feed import current_feed
+from commerce_lab.feed import current_feed, current_storefront_catalog
 from commerce_lab.guarded_creation_api import guarded_creation_router
 from commerce_lab.guarded_lookup_api import guarded_lookup_router
 from commerce_lab.payment_sandbox import config_schema, handler_spec, instrument_schema
@@ -115,20 +115,21 @@ if _storefront_origin:
 
 @app.get("/storefront/catalog", include_in_schema=False)
 async def storefront_catalog() -> JSONResponse:
-    """Read-only catalog view for the human storefront."""
+    """Read-only catalog view for the human storefront.
+
+    The ACP feed plus `delivery`, the per-variant shipping and delivery days that the feed
+    schema has no place for; `/feeds/current` stays pure ACP.
+    """
     try:
-        metadata, products = await run_in_threadpool(
-            current_feed, base_url=get_settings().acp_api_base_url
+        catalog = await run_in_threadpool(
+            current_storefront_catalog, base_url=get_settings().acp_api_base_url
         )
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Merchant catalog is unavailable.",
         ) from None
-    return JSONResponse(
-        content={"metadata": metadata, "products": products},
-        headers={"Cache-Control": "no-store"},
-    )
+    return JSONResponse(content=catalog, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/feeds/current", include_in_schema=False)

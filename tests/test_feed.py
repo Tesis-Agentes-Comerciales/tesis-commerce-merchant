@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
-from commerce_lab.feed import build_feed, export_feed
+from commerce_lab.feed import build_feed, delivery_terms, export_feed
 from commerce_lab.fixtures import fresh_p0_offers
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -144,3 +144,29 @@ def test_every_product_has_an_image_served_by_the_merchant() -> None:
         assert url.startswith(f"{ORIGIN}/assets/products/")
         # La ruta derivada del id es el respaldo; ningún producto debe caer en ella.
         assert not url.endswith(f"/assets/products/{product['id']}.jpg")
+
+
+def test_delivery_terms_publish_each_variant_shipping_total_and_days() -> None:
+    offers = fresh_p0_offers()
+    terms = delivery_terms(offers)
+    assert set(terms) == {offer.id for offer in offers}
+    # Bajo COP 2.000.000 el envío cuesta COP 25.000.
+    assert terms["Q100286751-256GB"] == {
+        "shipping_total_minor": 25_000_00,
+        "total_minor": 1_335_000_00,
+        "delivery_days": 4,
+    }
+    # Desde COP 2.000.000 es gratis, con el límite incluido.
+    assert terms["Q138529589-256GB"] == {
+        "shipping_total_minor": 0,
+        "total_minor": 2_000_000_00,
+        "delivery_days": 6,
+    }
+    # El total que ve la vitrina es el precio publicado en el feed más el envío.
+    _, products = build_feed(offers, base_url=ORIGIN)
+    for product in products:
+        for variant in cast(list[dict[str, Any]], product["variants"]):
+            term = terms[variant["id"]]
+            assert term["total_minor"] == variant["price"]["amount"] + term["shipping_total_minor"]
+            assert term["shipping_total_minor"] in {0, 25_000_00}
+            assert 1 <= term["delivery_days"] <= 8

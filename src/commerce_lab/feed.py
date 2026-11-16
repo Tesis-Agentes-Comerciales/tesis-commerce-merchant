@@ -218,10 +218,25 @@ def _read_offers(run_id: str | None) -> list[Offer]:
     return [Offer.model_validate(row[0]) for row in rows]
 
 
-def current_feed(
-    *, base_url: str | None = None
-) -> tuple[dict[str, object], list[dict[str, object]]]:
-    """Publish the merchant-managed catalog for the storefront and buyer agents."""
+def delivery_terms(offers: list[Offer]) -> dict[str, dict[str, int]]:
+    """Envío, total y plazo de cada variante, que el comercio fija antes del checkout.
+
+    El Product del feed ACP 2026-04-17 no tiene campo de envío ni admite propiedades
+    adicionales, así que estos términos viajan aparte, por id de variante, y solo en la
+    respuesta de la vitrina. Los montos están en la moneda del precio de la variante.
+    """
+    return {
+        offer.id: {
+            "shipping_total_minor": offer.pricing.shipping_total_minor,
+            "total_minor": offer.pricing.total_minor,
+            "delivery_days": offer.delivery_days,
+        }
+        for offer in offers
+    }
+
+
+def _merchant_offers() -> tuple[list[Offer], str]:
+    """Read the merchant-managed catalog and its last update in one snapshot."""
     with psycopg.connect(database_url()) as connection, connection.transaction():
         connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
         selected = connection.execute(
@@ -233,12 +248,35 @@ def current_feed(
             "SELECT snapshot, updated_at FROM catalog_offers WHERE run_id = %s ORDER BY offer_id",
             (selected[0],),
         ).fetchall()
-    metadata, products = build_feed(
-        [Offer.model_validate(row[0]) for row in rows], base_url=base_url
-    )
+    updated_at = max(row[1] for row in rows).isoformat().replace("+00:00", "Z")
+    return [Offer.model_validate(row[0]) for row in rows], updated_at
+
+
+def _merchant_feed(
+    offers: list[Offer], updated_at: str, base_url: str | None
+) -> tuple[dict[str, object], list[dict[str, object]]]:
+    metadata, products = build_feed(offers, base_url=base_url)
     metadata["id"] = "feed_merchant_catalog"
-    metadata["updated_at"] = max(row[1] for row in rows).isoformat().replace("+00:00", "Z")
+    metadata["updated_at"] = updated_at
     return metadata, products
+
+
+def current_feed(
+    *, base_url: str | None = None
+) -> tuple[dict[str, object], list[dict[str, object]]]:
+    """Publish the merchant-managed catalog for buyer agents."""
+    offers, updated_at = _merchant_offers()
+    return _merchant_feed(offers, updated_at, base_url)
+
+
+def current_storefront_catalog(*, base_url: str | None = None) -> dict[str, object]:
+    """The published feed plus the per-variant delivery terms the storefront shows.
+
+    `metadata` and `products` are exactly the feed; `delivery` is read from the same snapshot.
+    """
+    offers, updated_at = _merchant_offers()
+    metadata, products = _merchant_feed(offers, updated_at, base_url)
+    return {"metadata": metadata, "products": products, "delivery": delivery_terms(offers)}
 
 
 def export_feed(

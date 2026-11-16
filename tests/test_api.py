@@ -475,21 +475,52 @@ def test_storefront_catalog_is_public_read_only_and_never_cached(monkeypatch) ->
     """La vitrina humana lee sin Bearer; el canal ACP sigue exigiéndolo."""
     metadata = {"id": "feed_p0_tech", "target_country": "CO", "updated_at": "2026-09-10T14:00:00Z"}
     products = [{"id": "prod-x", "title": "X", "variants": [{"id": "X-1", "title": "X 1"}]}]
-    monkeypatch.setattr("commerce_lab.api.current_feed", lambda **_: (metadata, products))
+    delivery = {"X-1": {"shipping_total_minor": 0, "total_minor": 100, "delivery_days": 1}}
+    catalog = {"metadata": metadata, "products": products, "delivery": delivery}
+    monkeypatch.setattr("commerce_lab.api.current_storefront_catalog", lambda **_: catalog)
 
     response = TestClient(app).get("/storefront/catalog")
 
     assert response.status_code == 200
-    assert response.json() == {"metadata": metadata, "products": products}
+    assert response.json() == catalog
     # El inventario cambia con cada compra del agente: una respuesta cacheada mentiría.
     assert response.headers["Cache-Control"] == "no-store"
 
 
+def test_storefront_catalog_adds_delivery_terms_without_touching_the_acp_feed(
+    monkeypatch,
+) -> None:
+    """El envío viaja aparte de los Product: el feed publicado sigue siendo ACP puro."""
+    monkeypatch.setattr(
+        "commerce_lab.feed._merchant_offers",
+        lambda: (fresh_p0_offers(), "2026-09-10T14:00:00Z"),
+    )
+    client = TestClient(app)
+
+    feed = client.get("/feeds/current")
+    storefront = client.get("/storefront/catalog")
+
+    assert feed.status_code == storefront.status_code == 200
+    assert set(feed.json()) == {"metadata", "products"}
+    assert "shipping_total_minor" not in feed.text and "delivery_days" not in feed.text
+    body = storefront.json()
+    assert set(body) == {"metadata", "products", "delivery"}
+    assert body["metadata"] == feed.json()["metadata"]
+    assert body["products"] == feed.json()["products"]
+    variant_ids = {variant["id"] for product in body["products"] for variant in product["variants"]}
+    assert set(body["delivery"]) == variant_ids
+    assert body["delivery"]["Q100286751-256GB"] == {
+        "shipping_total_minor": 25_000_00,
+        "total_minor": 1_335_000_00,
+        "delivery_days": 4,
+    }
+
+
 def test_storefront_catalog_reports_unavailable_before_the_catalog_is_seeded(monkeypatch) -> None:
-    def unseeded(**_: object) -> tuple[dict[str, object], list[dict[str, object]]]:
+    def unseeded(**_: object) -> dict[str, object]:
         raise ValueError("Seed a P0 merchant episode before serving the storefront")
 
-    monkeypatch.setattr("commerce_lab.api.current_feed", unseeded)
+    monkeypatch.setattr("commerce_lab.api.current_storefront_catalog", unseeded)
 
     response = TestClient(app).get("/storefront/catalog")
 
