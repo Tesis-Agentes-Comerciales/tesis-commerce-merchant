@@ -24,9 +24,21 @@ export type FeedProduct = {
   variants: FeedVariant[]
 }
 
+/** Envío, total y plazo de una variante, fijos antes del checkout. Montos en unidades menores. */
+export type DeliveryTerms = {
+  shipping_total_minor: number
+  total_minor: number
+  delivery_days: number
+}
+
 export type Catalog = {
   metadata: { id: string; target_country: string; updated_at: string }
   products: FeedProduct[]
+  /**
+   * Términos de entrega por id de variante. El Product del feed ACP no tiene campo de envío
+   * ni admite campos propios, así que el comercio los publica aparte, solo para la vitrina.
+   */
+  delivery: Record<string, DeliveryTerms>
 }
 
 const RAW_BASE = import.meta.env.VITE_MERCHANT_API_URL ?? "http://127.0.0.1:4120"
@@ -35,7 +47,9 @@ export const MERCHANT_ORIGIN = RAW_BASE.replace(/\/+$/, "")
 export async function fetchCatalog(signal?: AbortSignal): Promise<Catalog> {
   const response = await fetch(`${MERCHANT_ORIGIN}/storefront/catalog`, { signal })
   if (!response.ok) throw new Error(`El comercio respondió ${response.status}`)
-  return (await response.json()) as Catalog
+  const catalog = (await response.json()) as Catalog
+  // Vitrina y comercio se despliegan por separado: sin términos, la vitrina calla el envío.
+  return { ...catalog, delivery: catalog.delivery ?? {} }
 }
 
 const LOCALE = "es-CO"
@@ -142,4 +156,39 @@ export function orderedVariants(product: FeedProduct): FeedVariant[] {
   return [...product.variants].sort(
     (left, right) => left.price.amount - right.price.amount || left.id.localeCompare(right.id)
   )
+}
+
+/**
+ * Envío que anuncia la tarjeta. Si cambia entre variantes, nombra el precio desde el que es
+ * gratis: "Envío gratis" sería falso para las baratas, y el costo solo, para las caras.
+ */
+export function shippingSummary(
+  product: FeedProduct,
+  delivery: Record<string, DeliveryTerms>
+): string | null {
+  const rows = orderedVariants(product).flatMap((variant) => {
+    const terms = delivery[variant.id]
+    return terms ? [{ price: variant.price, shipping: terms.shipping_total_minor }] : []
+  })
+  const first = rows[0]
+  if (!first) return null
+  const costs = [...new Set(rows.map((row) => row.shipping))]
+  if (costs.length === 1) {
+    return first.shipping === 0
+      ? "Envío gratis"
+      : `Envío ${formatMoney(first.shipping, first.price.currency)}`
+  }
+  const firstFree = rows.find((row) => row.shipping === 0)
+  if (firstFree) {
+    return `Envío gratis desde ${formatMoney(firstFree.price.amount, firstFree.price.currency)}`
+  }
+  return `Envío desde ${formatMoney(Math.min(...costs), first.price.currency)}`
+}
+
+/**
+ * Plazo de entrega en días calendario, como lo cuenta el checkout ACP: la fecha de entrega
+ * es la creación del checkout más `delivery_days`.
+ */
+export function arrivalText(days: number): string {
+  return `Llega a Bogotá en ${days} ${days === 1 ? "día" : "días"}`
 }

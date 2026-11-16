@@ -8,6 +8,10 @@ Bearer. Un catálogo autoritativo, dos canales: HTML para personas y ACP para el
 endpoint devuelve la misma proyección que consume el comprador y la lee en vivo de la base, así
 que el inventario que ve una persona ya refleja lo que compró el agente.
 
+Además trae `delivery`, el envío, el total y el plazo de cada variante por su id. El feed ACP no
+tiene dónde publicarlos, y son fijos antes del checkout: la tarjeta anuncia el envío y el detalle
+muestra envío, total y días de entrega de la configuración elegida.
+
 ## Desarrollo
 
 ```sh

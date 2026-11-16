@@ -7,7 +7,9 @@ import {
   formatMoney,
   inStock,
   priceRange,
+  shippingSummary,
   thumbnail,
+  type DeliveryTerms,
   type FeedProduct,
 } from "@/lib/catalog"
 import { cn } from "cn"
@@ -37,12 +39,15 @@ function Tag({ tone, children }: { tone: "accent" | "dark" | "plain"; children: 
 
 export function ProductCard({
   product,
+  delivery,
   onOpen,
 }: {
   product: FeedProduct
+  delivery: Record<string, DeliveryTerms>
   onOpen: (product: FeedProduct) => void
 }) {
   const range = priceRange(product)
+  const shipping = shippingSummary(product, delivery)
   const available = inStock(product)
   const refurbished = conditionsOf(product).includes("refurbished")
   const scarce = product.variants.some((variant) => variant.availability.status === "limited_stock")
@@ -77,6 +82,7 @@ export function ProductCard({
             ? formatMoney(range.min, range.currency)
             : `Desde ${formatMoney(range.min, range.currency)}`}
         </p>
+        {shipping && <p className="text-xs text-muted-foreground">{shipping}</p>}
         {count > 1 && (
           <p className="text-xs text-muted-foreground">{count} capacidades</p>
         )}

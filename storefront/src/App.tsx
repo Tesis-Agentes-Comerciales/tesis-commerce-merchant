@@ -49,6 +49,7 @@ export default function App() {
 
   // Sin memoizar, el arreglo cambia en cada render y anula los useMemo de abajo.
   const products = useMemo(() => catalog?.products ?? [], [catalog])
+  const delivery = catalog?.delivery ?? {}
 
   const facets = useMemo(() => {
     const categories = new Set<string>()
@@ -118,7 +119,11 @@ export default function App() {
       />
 
       {routedProduct ? (
-        <ProductDetail product={routedProduct} onBack={() => navigate("/")} />
+        <ProductDetail
+          product={routedProduct}
+          delivery={delivery}
+          onBack={() => navigate("/")}
+        />
       ) : route.name === "product" && catalog ? (
         <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-16 text-center sm:px-6">
           <p className="text-sm font-medium">Ese producto no está en el catálogo.</p>
@@ -242,6 +247,7 @@ export default function App() {
                         <ProductCard
                           key={product.id}
                           product={product}
+                          delivery={delivery}
                           onOpen={(item) => navigate(productPath(item.id))}
                         />
                       ))}
