@@ -8,12 +8,18 @@ un tercero.
 Las imágenes son de Wikimedia Commons, con licencias libres. Se escribe PROVENANCE.md con el
 archivo de origen de cada una para poder citarlas.
 
+Con `--ampliado` descarga las fotos del catálogo ampliado con el mismo procedimiento y solo
+reescribe su sección de PROVENANCE.md, con licencia y autor de cada archivo; el resto del
+archivo queda igual.
+
 Uso:
     uv run python scripts/catalog/fetch_product_images.py
+    uv run python scripts/catalog/fetch_product_images.py --ampliado
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import time
 import urllib.error
@@ -24,11 +30,13 @@ from typing import Any, Final
 
 ROOT: Final = Path(__file__).resolve().parents[2]
 SNAPSHOT: Final = ROOT / "src/commerce_lab/fixtures/catalog_snapshot.json"
+SNAPSHOT_AMPLIADO: Final = ROOT / "src/commerce_lab/fixtures/catalog_snapshot_ampliado.json"
 OUT_DIR: Final = ROOT / "assets/products"
 USER_AGENT: Final = "TesisCommerceCatalog/1.0 (Uniandes thesis; academic use)"
 WIDTH: Final = 480
 # Pausa entre peticiones para no presionar a Wikimedia.
 DELAY_SECONDS: Final = 0.25
+AMPLIADO_HEADING: Final = "## Catálogo ampliado"
 
 _EXTENSIONS: Final = {
     "image/jpeg": ".jpg",
@@ -53,12 +61,9 @@ def _download(url: str) -> tuple[bytes, str] | None:
         return None
 
 
-def main() -> None:
-    document = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
-    products: list[dict[str, Any]] = document["products"]
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    provenance: list[str] = []
+def _fetch_all(products: list[dict[str, Any]]) -> tuple[list[tuple[str, dict[str, Any]]], int]:
+    """Descarga lo que falte y devuelve (archivo servido, producto) de cada foto disponible."""
+    served: list[tuple[str, dict[str, Any]]] = []
     saved = skipped = failed = 0
     for index, product in enumerate(products, start=1):
         entity = str(product["entity"])
@@ -66,7 +71,7 @@ def main() -> None:
         existing = list(OUT_DIR.glob(f"{entity}.*"))
         if existing:
             skipped += 1
-            provenance.append(f"| `{existing[0].name}` | {product['title']} | `{source_file}` |")
+            served.append((existing[0].name, product))
             continue
 
         result = None
@@ -84,11 +89,15 @@ def main() -> None:
         target = OUT_DIR / f"{entity}{_EXTENSIONS.get(content_type, '.jpg')}"
         target.write_bytes(body)
         saved += 1
-        provenance.append(f"| `{target.name}` | {product['title']} | `{source_file}` |")
+        served.append((target.name, product))
         if index % 25 == 0:
             print(f"  [{index}/{len(products)}] descargadas={saved} fallos={failed}", flush=True)
         time.sleep(DELAY_SECONDS)
+    print(json.dumps({"descargadas": saved, "ya_estaban": skipped, "fallos": failed}))
+    return served, failed
 
+
+def _write_p0_provenance(served: list[tuple[str, dict[str, Any]]]) -> None:
     header = [
         "# Procedencia de las imágenes de producto",
         "",
@@ -101,8 +110,53 @@ def main() -> None:
         "| Archivo servido | Producto | Archivo en Commons |",
         "| --- | --- | --- |",
     ]
-    (OUT_DIR / "PROVENANCE.md").write_text("\n".join([*header, *provenance, ""]), encoding="utf-8")
-    print(json.dumps({"descargadas": saved, "ya_estaban": skipped, "fallos": failed}))
+    rows = [
+        f"| `{name}` | {product['title']} | `{product['image_file']}` |" for name, product in served
+    ]
+    (OUT_DIR / "PROVENANCE.md").write_text("\n".join([*header, *rows, ""]), encoding="utf-8")
+
+
+def _write_ampliado_provenance(served: list[tuple[str, dict[str, Any]]]) -> None:
+    """Reemplaza solo la sección del catálogo ampliado; las demás quedan como estaban."""
+    section = [
+        AMPLIADO_HEADING,
+        "",
+        "Fotos de los modelos de `src/commerce_lab/fixtures/catalog_snapshot_ampliado.json`,",
+        "descargadas una sola vez de **Wikimedia Commons** con",
+        "`scripts/catalog/fetch_product_images.py --ampliado`. Son archivos con licencia libre; la",
+        "página del archivo en Commons documenta autoría y licencia exacta.",
+        "",
+        "| Archivo servido | Producto | Archivo en Commons | Licencia | Autor |",
+        "| --- | --- | --- | --- | --- |",
+        *(
+            f"| `{name}` | {product['title']} | `{product['image_file']}` "
+            f"| {product.get('image_license', '')} | {product.get('image_author', '')} |"
+            for name, product in sorted(served, key=lambda pair: pair[0])
+        ),
+    ]
+    path = OUT_DIR / "PROVENANCE.md"
+    before, _, rest = path.read_text(encoding="utf-8").partition(f"\n{AMPLIADO_HEADING}\n")
+    following = rest.find("\n## ")
+    after = rest[following:] if following >= 0 else ""
+    body = before.rstrip("\n") + "\n\n" + "\n".join(section) + "\n" + after
+    path.write_text(body, encoding="utf-8")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(prog="fetch_product_images")
+    parser.add_argument("--ampliado", action="store_true")
+    arguments = parser.parse_args()
+
+    snapshot = SNAPSHOT_AMPLIADO if arguments.ampliado else SNAPSHOT
+    products: list[dict[str, Any]] = json.loads(snapshot.read_text(encoding="utf-8"))["products"]
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    served, failed = _fetch_all(products)
+    if arguments.ampliado:
+        _write_ampliado_provenance(served)
+    else:
+        _write_p0_provenance(served)
+    if failed and arguments.ampliado:
+        raise SystemExit(f"{failed} fotos no se descargaron; vuelva a correr el script")
 
 
 if __name__ == "__main__":
