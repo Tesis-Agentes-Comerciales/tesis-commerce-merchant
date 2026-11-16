@@ -6,11 +6,13 @@ import {
   AVAILABILITY_LABELS,
   CATEGORY_LABELS,
   CONDITION_LABELS,
+  arrivalText,
   brandOf,
   categoriesOf,
   formatMoney,
   orderedVariants,
   thumbnail,
+  type DeliveryTerms,
   type FeedProduct,
   type FeedVariant,
 } from "@/lib/catalog"
@@ -41,9 +43,11 @@ function availabilityTone(status: string) {
 
 export function ProductDetail({
   product,
+  delivery,
   onBack,
 }: {
   product: FeedProduct
+  delivery: Record<string, DeliveryTerms>
   onBack: () => void
 }) {
   const variants = orderedVariants(product)
@@ -69,6 +73,13 @@ export function ProductDetail({
 
   const brand = brandOf(product)
   const category = categoriesOf(product)[0] ?? ""
+  const terms: DeliveryTerms | undefined = delivery[selected.id]
+  const currency = selected.price.currency
+  const shippingText = terms
+    ? terms.shipping_total_minor === 0
+      ? "Gratis"
+      : formatMoney(terms.shipping_total_minor, currency)
+    : null
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-4 pb-10 sm:px-6">
@@ -111,7 +122,7 @@ export function ProductDetail({
           </div>
 
           <div className="min-w-0">
-            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{brand}</p>
+            <p className="text-xs font-semibold text-muted-foreground">{brand}</p>
             <h2 className="mt-1 text-xl leading-snug font-semibold">{product.title}</h2>
 
             <p
@@ -125,14 +136,31 @@ export function ProductDetail({
 
             <div className="mt-4 border-y border-border py-4">
               <p className="text-3xl font-semibold text-foreground tabular-nums">
-                {formatMoney(selected.price.amount, selected.price.currency)}
+                {formatMoney(selected.price.amount, currency)}
               </p>
-              <p className="mt-1.5 text-xs text-muted-foreground">Envío calculado en el checkout.</p>
+              {terms && (
+                <>
+                  <dl className="mt-3 max-w-xs space-y-1 text-sm tabular-nums">
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-muted-foreground">Envío</dt>
+                      <dd>{shippingText}</dd>
+                    </div>
+                    <div className="flex justify-between gap-4 font-semibold">
+                      <dt>Total</dt>
+                      <dd>{formatMoney(terms.total_minor, currency)}</dd>
+                    </div>
+                  </dl>
+                  <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Truck className="size-4 shrink-0" aria-hidden />
+                    {arrivalText(terms.delivery_days)}
+                  </p>
+                </>
+              )}
             </div>
 
             {product.variants.length > 1 && (
               <div className="mt-4">
-                <p className="mb-2 text-xs font-semibold tracking-wide uppercase">
+                <p className="mb-2 text-xs font-semibold">
                   {product.variants.length} configuraciones
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -142,7 +170,7 @@ export function ProductDetail({
                       variant.variant_options
                         .filter((option) => varying.has(option.name))
                         .map((option) => option.value)
-                        .join(" · ") || variant.title
+                        .join(", ") || variant.title
                     return (
                       <button
                         key={variant.id}
@@ -225,10 +253,13 @@ export function ProductDetail({
 
           {tab === "entrega" && (
             <div className="max-w-3xl space-y-3 text-sm text-muted-foreground">
-              <p className="flex items-start gap-2.5">
-                <Truck className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
-                Entrega a Bogotá. El comercio fija el costo y la fecha al crear el checkout.
-              </p>
+              {terms && (
+                <p className="flex items-start gap-2.5">
+                  <Truck className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  {terms.shipping_total_minor === 0 ? "Envío gratis" : `Envío por ${shippingText}`}.{" "}
+                  {arrivalText(terms.delivery_days)}. El checkout usa este costo y este plazo.
+                </p>
+              )}
               <p className="flex items-start gap-2.5">
                 <Package className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
                 Vitrina de consulta. La compra ocurre por el canal ACP y el comercio revalida los
