@@ -11,7 +11,7 @@ catálogo y exige revisar el diff, la procedencia y las licencias antes de commi
 | Script | Qué hace |
 |---|---|
 | `fetch_wikidata_catalog.py --out src/commerce_lab/fixtures/catalog_snapshot.json` | Recolecta modelos reales desde Wikidata, con el nombre del archivo de Wikimedia Commons de cada imagen. |
-| `fetch_wikidata_catalog.py --ampliado --out src/commerce_lab/fixtures/catalog_snapshot_ampliado.json` | Arma el catálogo ampliado: otras marcas y gamas, sin repetir modelos de P0, solo con fotos de licencia libre y sin las descartadas a mano (`AMPLIADO_EXCLUDED`). Nunca escribe el snapshot P0. |
+| `fetch_wikidata_catalog.py --ampliado --out src/commerce_lab/fixtures/catalog_snapshot_ampliado.json` | Arma el catálogo ampliado: otras marcas y gamas, sin repetir modelos de P0, solo con fotos de licencia libre sin cláusulas NC ni ND, sin las descartadas a mano (`AMPLIADO_EXCLUDED`) y sin los modelos que el generador pone en una gama de precio absurda (`AMPLIADO_MISPRICED`). Nunca escribe el snapshot P0. |
 | `fetch_product_images.py` | Descarga una vez las fotos de Commons a `assets/products/` y escribe `PROVENANCE.md`, para que la tienda las sirva desde su propio origen. Con `--ampliado` descarga las del catálogo ampliado y solo reescribe su sección de `PROVENANCE.md`, con licencia y autor. |
 | `fetch_render_images.py` | Reemplaza fotos de usuario por el render oficial del fabricante cuando su CDN lo tiene; registra esos renders aparte en `PROVENANCE.md`. |
 | `fetch_store_lineup.py` | Completa el surtido de una cadena con las capacidades reales de cada modelo y el render del fabricante, con el descargador de `fetch_render_images.py`. Su búsqueda en Openverse (`_best_image`) quedó definida pero ya no se llama. |

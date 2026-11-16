@@ -316,6 +316,7 @@ AMPLIADO_EXCLUDED: Final[dict[str, str]] = {
     "Q56755071": "silueta vectorial, no foto",
     "Q58638342": "la foto es del Honor X9b",
     "Q59357246": "la foto es del R17 Pro",
+    "Q61369883": "el vidrio de la pantalla está roto",
     "Q61721774": "vitrina con el cartel del Mi 8",
     "Q62063540": "la foto es del Moto G7 Plus",
     "Q64549901": "vitrina con el 14T y el 14T Pro",
@@ -327,6 +328,7 @@ AMPLIADO_EXCLUDED: Final[dict[str, str]] = {
     "Q97162239": "vitrina con precio; el teléfono es pequeño",
     "Q97201913": "vitrina con dos teléfonos",
     "Q97380020": "pantalla rayada, recorte de baja calidad",
+    "Q98301286": "la pantalla muestra un anuncio de otra marca",
     "Q105763874": "la foto es del Redmi Note 10S",
     "Q106504943": "dibujo plano, no foto",
     "Q107135797": "solo muestra la cámara",
@@ -343,6 +345,7 @@ AMPLIADO_EXCLUDED: Final[dict[str, str]] = {
     "Q130272078": "vitrina de cristal; el teléfono es pequeño",
     "Q131345481": "exhibición con varios modelos",
     "Q131369746": "la pantalla muestra que es el Xiaomi 15 Pro",
+    "Q133828220": "el vidrio de la cámara está roto",
     "Q135543826": "muestra dos modelos de la serie 13T",
     "Q135552065": "exhibición de tienda; el teléfono es pequeño",
     "Q136718376": "exhibición de tienda; el teléfono es pequeño",
@@ -350,13 +353,54 @@ AMPLIADO_EXCLUDED: Final[dict[str, str]] = {
     "Q140690372": "exhibición con tres modelos",
 }
 
-# Licencias libres que publica Commons en `LicenseShortName`.
-FREE_LICENSE: Final = re.compile(r"^(cc0|cc[ -]by|public domain|pd|gfdl|attribution)", re.I)
+# Modelos que la regla de gama del generador, compartida con P0, deja con un precio absurdo para
+# su segmento: «Plus», «Pro» o «Max» suben a gama alta teléfonos de entrada o media, y los
+# plegables o gama alta recientes sin esas palabras caen a gama media. Como `generated.py` no se
+# toca, el modelo entero se excluye y ninguna otra entidad con el mismo nombre ocupa su lugar.
+AMPLIADO_MISPRICED: Final[dict[str, str]] = {
+    "Q55694209": "Nokia 5.1 Plus, gama media a 3,2 M",
+    "Q65042230": "Nokia 1 Plus, gama de entrada a 4,3 M",
+    "Q99701353": "Oppo F11 Pro, gama media a 4 M",
+    "Q101244860": "Huawei Mate Xs, plegable a 1 M",
+    "Q109264526": "Redmi Note 10 Pro, gama media a 3,1 M",
+    "Q112075188": "Redmi Note 11 Pro, gama media a 3,1 M",
+    "Q117280924": "POCO X3 Pro, gama media a 4,1 M",
+    "Q118288605": "Sony Xperia 1 V, gama alta de 2023 a 1,2 M",
+    "Q122204657": "Sony Xperia 5 V, gama alta de 2023 a 1,1 M",
+    "Q123232418": "OnePlus Open, plegable de 2023 a 1 M",
+    "Q124485887": "Oppo Find X7, gama alta de 2024 a 1 M",
+    "Q127872524": "Vivo X100, gama alta de 2023 a 1,2 M",
+    "Q130321406": "ASUS ZenFone Max (M2), gama de entrada a 4,9 M",
+    "Q131349208": "Oppo Find X8, gama alta de 2024 a 0,8 M",
+    "Q134464097": "CMF Phone 2 Pro, gama de entrada a 3,5 M",
+    "Q135189882": "Nothing Phone 3, gama alta de 2025 a 1 M",
+    "Q136398996": "Xiaomi 17, gama alta de 2025 a 0,9 M",
+    "Q137208843": "Samsung Galaxy Z TriFold, plegable triple a 1,8 M",
+}
+
+# Licencias libres que publica Commons en `LicenseShortName`. La coincidencia es completa, así que
+# las variantes NC o ND (uso no comercial, sin derivadas) nunca pasan.
+FREE_LICENSE: Final = re.compile(
+    r"^(?!.*\bn[cd]\b)(cc0( 1\.0)?|cc[ -]by(-sa)?[ -][0-9.]+( [a-z]{2,3})?"
+    r"|public domain|gfdl( [0-9.]+)?|attribution)$",
+    re.I,
+)
 
 
 def _title_brand(label: str, fallback: str | None) -> str:
     head = re.split(r"[\s(]", label.strip(), maxsplit=1)[0].casefold()
     return AMPLIADO_TITLE_BRANDS.get(head) or _normalized_brand(fallback, label)
+
+
+# Mayúsculas de la marca como las escribe la propia marca y P0.
+AMPLIADO_TITLE_HEADS: Final[dict[str, str]] = {"asus": "ASUS", "poco": "POCO", "realme": "Realme"}
+
+
+def _ampliado_title(label: str) -> str:
+    """Título de tienda: Honor sin el «Huawei» de antes de 2020 y la marca con sus mayúsculas."""
+    title = re.sub(r"^huawei\s+(?=honor\b)", "", label.strip(), flags=re.I)
+    head, separator, rest = title.partition(" ")
+    return AMPLIADO_TITLE_HEADS.get(head.casefold(), head) + separator + rest
 
 
 def _model_key(brand: str, title: str) -> tuple[str, str]:
@@ -429,8 +473,9 @@ def collect_ampliado() -> list[dict[str, Any]]:
             continue
         if file_name.lower().endswith((".svg", ".svgz")):
             continue
+        title = _ampliado_title(label)
         maker = _value(row, "brand")
-        brand = _title_brand(label, None if maker and QID.match(maker) else maker)
+        brand = _title_brand(title, None if maker and QID.match(maker) else maker)
         released = _value(row, "released")
         released_day = released[:10] if released and released[:4].isdigit() else None
         if brand not in AMPLIADO_BRANDS:
@@ -438,12 +483,12 @@ def collect_ampliado() -> list[dict[str, Any]]:
         if released_day:
             if int(released_day[:4]) < AMPLIADO_FROM:
                 continue
-        elif not AMPLIADO_SERIES.search(label):
+        elif not AMPLIADO_SERIES.search(title):
             continue
         candidates.append(
             {
                 "entity": entity,
-                "title": label,
+                "title": title,
                 "brand": brand,
                 "category": "smartphones",
                 "kind": "Teléfono",
@@ -464,7 +509,8 @@ def collect_ampliado() -> list[dict[str, Any]]:
         if key in models:
             continue
         models.add(key)
-        selected.append(row)
+        if row["entity"] not in AMPLIADO_MISPRICED:
+            selected.append(row)
 
     licenses = _commons_metadata(sorted({row["image_file"] for row in selected}))
     usable: list[dict[str, Any]] = []

@@ -39,7 +39,12 @@ P0_VARIANTS = {
     "BBGooglePixel8-128GB": (1_540_000_00, 13, "negro", 6),
 }
 NEW_BRANDS = {"Xiaomi", "Huawei", "Honor", "Oppo", "Realme", "Vivo", "Nokia", "ASUS", "Nothing"}
-FREE_LICENSE = re.compile(r"^(cc0|cc[ -]by|public domain|pd|gfdl|attribution)", re.I)
+# Coincidencia completa: una variante NC o ND no pasa.
+FREE_LICENSE = re.compile(
+    r"^(?!.*\bn[cd]\b)(cc0( 1\.0)?|cc[ -]by(-sa)?[ -][0-9.]+( [a-z]{2,3})?"
+    r"|public domain|gfdl( [0-9.]+)?|attribution)$",
+    re.I,
+)
 
 
 def ampliado_snapshot() -> list[dict[str, Any]]:
@@ -127,6 +132,10 @@ def test_ampliado_snapshot_has_unique_models_with_free_photos_and_provenance() -
         assert not product["image_file"].lower().endswith((".svg", ".svgz"))
         assert provenance[files[0].name] == product["image_file"]
         assert FREE_LICENSE.match(product["image_license"]), product["entity"]
+        # La marca del título se escribe como la marca, y Honor ya no lleva «Huawei».
+        head = product["title"].split()[0]
+        assert head.casefold() != product["brand"].casefold() or head == product["brand"]
+        assert not product["title"].casefold().startswith("huawei honor"), product["entity"]
 
 
 def test_ampliado_feed_is_schema_valid_and_serves_every_photo() -> None:

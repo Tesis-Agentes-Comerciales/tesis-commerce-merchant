@@ -1,6 +1,6 @@
 {
   "license": "Datos: CC0. Imágenes: licencias libres por archivo, ver image_file.",
-  "product_count": 167,
+  "product_count": 146,
   "products": [
     {
       "brand": "ASUS",
@@ -24,19 +24,7 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Asus ZenFone 7"
-    },
-    {
-      "brand": "ASUS",
-      "category": "smartphones",
-      "entity": "Q130321406",
-      "image_author": "Motokoka",
-      "image_file": "ASUS ZenFone Max M2 (Front 01).png",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Asus ZenFone Max (M2)"
+      "title": "ASUS ZenFone 7"
     },
     {
       "brand": "Xiaomi",
@@ -63,18 +51,6 @@
       "title": "CMF Phone 1"
     },
     {
-      "brand": "Nothing",
-      "category": "smartphones",
-      "entity": "Q134464097",
-      "image_author": "Suntooooth",
-      "image_file": "CMF Phone 2 Pro (white) 2025-05-08.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "CMF Phone 2 Pro"
-    },
-    {
       "brand": "Honor",
       "category": "smartphones",
       "entity": "Q138111185",
@@ -89,6 +65,30 @@
     {
       "brand": "Honor",
       "category": "smartphones",
+      "entity": "Q56401768",
+      "image_author": "Kskhh",
+      "image_file": "Huawei Honor 8 Lite.jpg",
+      "image_license": "CC BY-SA 4.0",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2017-02-17",
+      "title": "Honor 8 Lite"
+    },
+    {
+      "brand": "Honor",
+      "category": "smartphones",
+      "entity": "Q30326193",
+      "image_author": "Huawei",
+      "image_file": "Huawei Honor 8 Pro.jpg",
+      "image_license": "CC BY 4.0",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2017-04-01",
+      "title": "Honor 8 Pro"
+    },
+    {
+      "brand": "Honor",
+      "category": "smartphones",
       "entity": "Q85287688",
       "image_author": "Kurdi44kurd",
       "image_file": "Honor 8x Home Screen.jpg",
@@ -97,6 +97,18 @@
       "kind": "Teléfono",
       "released": null,
       "title": "Honor 8x"
+    },
+    {
+      "brand": "Honor",
+      "category": "smartphones",
+      "entity": "Q31088292",
+      "image_author": "Huawei",
+      "image_file": "Huawei Honor 9.jpg",
+      "image_license": "CC BY 4.0",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Honor 9"
     },
     {
       "brand": "Honor",
@@ -121,54 +133,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "Honor Play 20"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q56401768",
-      "image_author": "Kskhh",
-      "image_file": "Huawei Honor 8 Lite.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2017-02-17",
-      "title": "Huawei Honor 8 Lite"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q30326193",
-      "image_author": "Huawei",
-      "image_file": "Huawei Honor 8 Pro.jpg",
-      "image_license": "CC BY 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2017-04-01",
-      "title": "Huawei Honor 8 Pro"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q31088292",
-      "image_author": "Huawei",
-      "image_file": "Huawei Honor 9.jpg",
-      "image_license": "CC BY 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Huawei Honor 9"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q133828220",
-      "image_author": "Raimond Spekking",
-      "image_file": "Huawei Honor P Smart Z-7634.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Huawei Honor P Smart Z"
     },
     {
       "brand": "Huawei",
@@ -217,18 +181,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "Huawei Mate 40 RS Porsche Design"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q101244860",
-      "image_author": "30000lightyears",
-      "image_file": "Huawei Mate Xs.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Huawei Mate Xs"
     },
     {
       "brand": "Huawei",
@@ -325,18 +277,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "Huawei P40 Pro"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q61369883",
-      "image_author": "Raimond Spekking",
-      "image_file": "Huawei Y6 (2018, ATU-L21)-2462.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Huawei Y6 2018"
     },
     {
       "brand": "Huawei",
@@ -449,18 +389,6 @@
     {
       "brand": "Nokia",
       "category": "smartphones",
-      "entity": "Q65042230",
-      "image_author": "Raimond Spekking",
-      "image_file": "Nokia 1 Plus-3095.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Nokia 1 Plus"
-    },
-    {
-      "brand": "Nokia",
-      "category": "smartphones",
       "entity": "Q59154195",
       "image_author": "Bindydad123 (Cutout by Dienthoaiquangcao63 )",
       "image_file": "Nokia 2.1.png",
@@ -493,18 +421,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "Nokia 5"
-    },
-    {
-      "brand": "Nokia",
-      "category": "smartphones",
-      "entity": "Q55694209",
-      "image_author": "Multicherry",
-      "image_file": "HMD Nokia 5.1 Plus Blue (front and rear).jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Nokia 5.1 Plus"
     },
     {
       "brand": "Nokia",
@@ -603,18 +519,6 @@
       "title": "Nothing Phone 2a"
     },
     {
-      "brand": "Nothing",
-      "category": "smartphones",
-      "entity": "Q135189882",
-      "image_author": "可恩Ke En",
-      "image_file": "半夜首发！第一手拿到了Nothing Phone (3) ！灯条没了、背后多一个screen！-00.00.11.457.png",
-      "image_license": "CC BY 3.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Nothing Phone 3"
-    },
-    {
       "brand": "OnePlus",
       "category": "smartphones",
       "entity": "Q125510258",
@@ -651,30 +555,6 @@
       "title": "OnePlus 6T"
     },
     {
-      "brand": "OnePlus",
-      "category": "smartphones",
-      "entity": "Q123232418",
-      "image_author": "Miyako Fujimiya",
-      "image_file": "OnePlus Open.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "OnePlus Open"
-    },
-    {
-      "brand": "Oppo",
-      "category": "smartphones",
-      "entity": "Q99701353",
-      "image_author": "Dienthoaiquangcao2",
-      "image_file": "Oppo F11 Pro (1).jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Oppo F11 Pro"
-    },
-    {
       "brand": "Oppo",
       "category": "smartphones",
       "entity": "Q135535578",
@@ -699,28 +579,28 @@
       "title": "Oppo Find X3"
     },
     {
-      "brand": "Oppo",
+      "brand": "Xiaomi",
       "category": "smartphones",
-      "entity": "Q124485887",
-      "image_author": "メイド理世",
-      "image_file": "OPPO Find X7（2024年2月20日）.jpg",
+      "entity": "Q106390929",
+      "image_author": "Maksdroider",
+      "image_file": "Front of POCO F4.jpg",
       "image_license": "CC BY-SA 4.0",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Oppo Find X7"
+      "title": "POCO F4"
     },
     {
-      "brand": "Oppo",
+      "brand": "Xiaomi",
       "category": "smartphones",
-      "entity": "Q131349208",
-      "image_author": "メイド理世",
-      "image_file": "OPPO Find X8 - About Phone (November 1, 2024).jpg",
+      "entity": "Q123736832",
+      "image_author": "Maksdroider",
+      "image_file": "POCO M5 front.jpg",
       "image_license": "CC BY-SA 4.0",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Oppo Find X8"
+      "title": "POCO M5"
     },
     {
       "brand": "Xiaomi",
@@ -733,18 +613,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "POCO X3"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q117280924",
-      "image_author": "LOOOKI",
-      "image_file": "Poco X3 Pro.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "POCO X3 Pro"
     },
     {
       "brand": "Google",
@@ -761,30 +629,6 @@
     {
       "brand": "Xiaomi",
       "category": "smartphones",
-      "entity": "Q106390929",
-      "image_author": "Maksdroider",
-      "image_file": "Front of POCO F4.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Poco F4"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q123736832",
-      "image_author": "Maksdroider",
-      "image_file": "POCO M5 front.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Poco M5"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
       "entity": "Q60199034",
       "image_author": "Petar Milošević",
       "image_file": "Xiaomi Poco F1 on Wikipedia.jpg",
@@ -793,6 +637,18 @@
       "kind": "Teléfono",
       "released": "2018-08-01",
       "title": "Pocophone F1"
+    },
+    {
+      "brand": "Realme",
+      "category": "smartphones",
+      "entity": "Q73168617",
+      "image_author": "Ajay kumar PHOTOGRAPHY",
+      "image_file": "REALME 3.jpg",
+      "image_license": "CC BY-SA 4.0",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Realme 3"
     },
     {
       "brand": "Realme",
@@ -1109,18 +965,6 @@
     {
       "brand": "Xiaomi",
       "category": "smartphones",
-      "entity": "Q109264526",
-      "image_author": "Petar Milošević",
-      "image_file": "Xiaomi Redmi Note 10 Pro (Global) front.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi Note 10 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
       "entity": "Q110879371",
       "image_author": "C4UNTRYB4LL193",
       "image_file": "XiaomiRedmiNote11.png",
@@ -1129,18 +973,6 @@
       "kind": "Teléfono",
       "released": "2022-02-01",
       "title": "Redmi Note 11"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q112075188",
-      "image_author": "Maksdroider",
-      "image_file": "Redmi Note 11 Pro front.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi Note 11 Pro"
     },
     {
       "brand": "Xiaomi",
@@ -1503,30 +1335,6 @@
       "title": "Samsung Galaxy Xcover 5"
     },
     {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q137208843",
-      "image_author": "ΚΑ ΚΙΤ",
-      "image_file": "Samsung Galaxy Z Trifold.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy Z TriFold"
-    },
-    {
-      "brand": "Sony",
-      "category": "smartphones",
-      "entity": "Q118288605",
-      "image_author": "Paxsmith80",
-      "image_file": "Sony Xperia 1 V.png",
-      "image_license": "CC0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Sony Xperia 1 V"
-    },
-    {
       "brand": "Sony",
       "category": "smartphones",
       "entity": "Q106595011",
@@ -1537,18 +1345,6 @@
       "kind": "Teléfono",
       "released": "2021-10-08",
       "title": "Sony Xperia 5 III"
-    },
-    {
-      "brand": "Sony",
-      "category": "smartphones",
-      "entity": "Q122204657",
-      "image_author": "Tc117-1",
-      "image_file": "XP-55.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2023-01-01",
-      "title": "Sony Xperia 5 V"
     },
     {
       "brand": "Sony",
@@ -1657,18 +1453,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "Vivo V21"
-    },
-    {
-      "brand": "Vivo",
-      "category": "smartphones",
-      "entity": "Q127872524",
-      "image_author": "Vis M",
-      "image_file": "Vivo X100.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Vivo X100"
     },
     {
       "brand": "Xiaomi",
@@ -1801,18 +1585,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "Xiaomi 15T Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q136398996",
-      "image_author": "茅野ふたば",
-      "image_file": "Xiaomi 17.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 17"
     },
     {
       "brand": "Xiaomi",
@@ -1981,30 +1753,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "ZTE Axon 10 Pro"
-    },
-    {
-      "brand": "Realme",
-      "category": "smartphones",
-      "entity": "Q73168617",
-      "image_author": "Ajay kumar PHOTOGRAPHY",
-      "image_file": "REALME 3.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "realme 3"
-    },
-    {
-      "brand": "Realme",
-      "category": "smartphones",
-      "entity": "Q98301286",
-      "image_author": "Shivaniwebgeo",
-      "image_file": "Real me 6 mobile phone.jpg",
-      "image_license": "CC BY-SA 4.0",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "realme 6"
     }
   ],
   "source": "Wikidata (https://www.wikidata.org), imágenes de Wikimedia Commons"

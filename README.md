@@ -163,13 +163,16 @@ generador determinista (`fixtures/generated.py`) a partir del identificador de c
 | Catálogo | Fuente | Tamaño | Uso |
 | --- | --- | --- | --- |
 | P0 | `catalog_snapshot.json` | 141 productos, 310 variantes | Predeterminado en todo: semillas de prueba y evaluación, `verify()`, feed de episodios y catálogo administrado |
-| Ampliado | P0 más `catalog_snapshot_ampliado.json` | 308 productos, 647 variantes | Opcional, solo para el catálogo administrado de la vitrina y la demo |
+| Ampliado | P0 más `catalog_snapshot_ampliado.json` | 287 productos, 606 variantes | Opcional, solo para el catálogo administrado de la vitrina y la demo |
 
-El ampliado suma 167 modelos y 337 variantes, sobre todo de gama media y baja: Xiaomi (con Redmi
-y POCO), Huawei, Honor, Oppo, Realme, Vivo, Nokia, ASUS, Nothing, Tecno y ZTE, que P0 no tiene, y
-más Motorola, Samsung, Sony, OnePlus y Google. No repite ningún modelo de P0 y las variantes de P0
-quedan idénticas. Solo entran modelos con una foto real de licencia libre en Commons; las que
-mostraban otro modelo, una vitrina o una captura de pantalla se descartaron a mano.
+El ampliado suma 146 modelos y 296 variantes, sobre todo de gama media y baja: Xiaomi (con Redmi
+y POCO), Huawei, Honor, Nokia, Realme, Nothing, Tecno, ASUS, Oppo, Vivo y ZTE, que P0 no tiene, y
+más Samsung, Motorola, Sony, OnePlus y Google. No repite ningún modelo de P0 y las variantes de P0
+quedan idénticas. Solo entran modelos con una foto real en Commons bajo licencia libre (CC0, CC BY,
+CC BY-SA, GFDL o dominio público), nunca con cláusulas NC o ND; las que mostraban otro modelo, una
+vitrina, una captura de pantalla o un equipo roto se descartaron a mano. También quedan fuera los modelos a los
+que el generador les pone un precio absurdo para su gama, como un Nokia 1 Plus de gama alta o un
+plegable a precio de gama media (`AMPLIADO_MISPRICED`).
 
 Las semillas nunca lo usan, sin importar el entorno. Las evaluaciones del agente siembran P0 por
 corrida (`FIXTURE_VERSION = "p0-catalog-v13"`) y sus casos fijan variantes y respuestas como "el

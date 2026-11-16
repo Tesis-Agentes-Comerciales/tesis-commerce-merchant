@@ -452,19 +452,17 @@ página del archivo en Commons documenta autoría y licencia exacta.
 | --- | --- | --- | --- | --- |
 | `Q100773701.jpg` | Huawei Mate 40 RS Porsche Design | `Huawei Mate 40 RS.jpg` | CC BY-SA 4.0 | 30000lightyears |
 | `Q100773797.png` | Huawei Mate 40 Pro | `HUAWEI Mate 40 Pro front.png` | CC BY-SA 4.0 | 30000lightyears |
-| `Q101244860.jpg` | Huawei Mate Xs | `Huawei Mate Xs.jpg` | CC BY-SA 4.0 | 30000lightyears |
 | `Q102279550.jpg` | Realme 7 | `Realme7mistwhite.jpg` | CC BY-SA 4.0 | Adnan Bukvic |
 | `Q104531763.jpg` | Xiaomi Mi 11 | `Xiaomi Mi 11 front.jpg` | CC BY-SA 4.0 | 30000lightyears |
 | `Q104791838.jpg` | Moto E7 | `Moto e7 wiki.jpg` | CC BY-SA 4.0 | EEIM |
 | `Q104859286.jpg` | Redmi K40 | `The back of Redmi K40.jpg` | CC BY-SA 4.0 | 洛微 |
 | `Q104868457.jpg` | Redmi 8A | `Fastboot.jpg` | CC BY-SA 4.0 | Foyejbd |
 | `Q106348638.jpg` | Oppo Find X3 | `OPPO find x3 front.jpg` | CC BY-SA 4.0 | 30000lightyears |
-| `Q106390929.jpg` | Poco F4 | `Front of POCO F4.jpg` | CC BY-SA 4.0 | Maksdroider |
+| `Q106390929.jpg` | POCO F4 | `Front of POCO F4.jpg` | CC BY-SA 4.0 | Maksdroider |
 | `Q106595011.jpg` | Sony Xperia 5 III | `SONY Xperia 5 III (SOG05) Frost Silver Frontside.jpg` | CC BY-SA 4.0 | D.328 |
 | `Q106661429.jpg` | Xiaomi Mi 11 Ultra | `Mi 11 Ultra front.jpg` | CC BY-SA 4.0 | 人工知能 |
 | `Q106917040.png` | Honor Play | `Honor play.png` | CC BY-SA 4.0 | Kengurukroshka |
 | `Q108713548.jpg` | Xiaomi Civi | `Xiaomi Civi Screen.jpg` | CC BY-SA 4.0 | 洛微 |
-| `Q109264526.jpg` | Redmi Note 10 Pro | `Xiaomi Redmi Note 10 Pro (Global) front.jpg` | CC BY-SA 4.0 | Petar Milošević |
 | `Q109264700.jpg` | Vivo V21 | `Vivo V21 back.jpg` | CC BY-SA 4.0 | Maksdroider |
 | `Q109264704.jpg` | Honor Play 20 | `Honor Play 20 English - 01.jpg` | CC BY-SA 4.0 | CSR2Forever |
 | `Q109264762.jpg` | Xiaomi 11T | `HK MK 旺角 Mongkok 彌敦道 601 Nathan Road 創興廣場 Chong Hing Square shop 小米之家 旗艦店 XiaoMi Store December 2021 SS2 18.jpg` | CC BY-SA 4.0 | GAUGEAR MSIERPLLO |
@@ -473,7 +471,6 @@ página del archivo en Commons documenta autoría y licencia exacta.
 | `Q110879371.png` | Redmi Note 11 | `XiaomiRedmiNote11.png` | CC BY-SA 4.0 | C4UNTRYB4LL193 |
 | `Q110969178.jpg` | Xiaomi 12 | `Xiaomi 12.jpg` | CC BY-SA 4.0 | 洛微 |
 | `Q111521463.jpg` | Redmi K50 | `Redmi K50.jpg` | CC BY-SA 4.0 | 洛微 |
-| `Q112075188.jpg` | Redmi Note 11 Pro | `Redmi Note 11 Pro front.jpg` | CC BY-SA 4.0 | Maksdroider |
 | `Q113130752.jpg` | Redmi 10C | `Front of Redmi 10C.jpg` | CC BY-SA 4.0 | Maksdroider |
 | `Q113572636.jpg` | Xiaomi MIX Fold 2 | `The large screen state of the Xiaomi MIX Fold 2 when unfolded.jpg` | CC BY 4.0 | X-SHLIED |
 | `Q115071578.jpg` | Redmi Note 12 | `Redmi Note 12 front.jpg` | CC BY-SA 4.0 | Maksdroider |
@@ -481,43 +478,30 @@ página del archivo en Commons documenta autoría y licencia exacta.
 | `Q115670608.jpg` | Xiaomi 13 | `Xiaomi 13 front.jpg` | CC BY-SA 4.0 | Maksdroider |
 | `Q115916201.jpg` | Redmi K60 | `Redmi K60 Screen.jpg` | CC BY-SA 4.0 | 洛微 |
 | `Q116026497.jpg` | Samsung Galaxy A14 | `Samsung Galaxy A14 20240313 162805 (cropped).jpg` | CC BY-SA 4.0 | PoetVeches |
-| `Q117280924.jpg` | POCO X3 Pro | `Poco X3 Pro.jpg` | CC BY-SA 4.0 | LOOOKI |
 | `Q118180525.jpg` | Nokia XR21 | `Nokia XR21 front.jpg` | CC BY 4.0 | Maksdroider |
-| `Q118288605.png` | Sony Xperia 1 V | `Sony Xperia 1 V.png` | CC0 | Paxsmith80 |
 | `Q119574824.jpg` | Redmi 12 | `Redmi 12 front.jpg` | CC BY-SA 4.0 | Maksdroider |
 | `Q120298587.png` | Nothing Phone 2 | `Nothing phone (2) (Booredatwork.com) 001.png` | CC BY 3.0 | Booredatwork.com |
 | `Q121200770.jpg` | Redmi 12C | `Redmi 12C front.jpg` | CC BY-SA 4.0 | Maksdroider |
-| `Q122204657.jpg` | Sony Xperia 5 V | `XP-55.jpg` | CC BY-SA 4.0 | Tc117-1 |
 | `Q122617710.jpg` | Xiaomi 12S | `The back of Xiaomi 12S.jpg` | CC BY-SA 4.0 | 洛微 |
 | `Q123038512.png` | Tecno Phantom V Flip | `Tecno Phantom V Flip.png` | CC BY 3.0 | mrawichannel |
-| `Q123232418.jpg` | OnePlus Open | `OnePlus Open.jpg` | CC BY-SA 4.0 | Miyako Fujimiya |
 | `Q123644366.jpg` | Xiaomi 13T | `Xiaomi 13T XIG04(アルパインブルー).jpg` | CC BY-SA 4.0 | けいあ |
-| `Q123736832.jpg` | Poco M5 | `POCO M5 front.jpg` | CC BY-SA 4.0 | Maksdroider |
+| `Q123736832.jpg` | POCO M5 | `POCO M5 front.jpg` | CC BY-SA 4.0 | Maksdroider |
 | `Q123739856.jpg` | Xiaomi 12 Lite | `Xiaomi 12 Lite front.jpg` | CC BY-SA 4.0 | Maksdroider |
-| `Q124485887.jpg` | Oppo Find X7 | `OPPO Find X7（2024年2月20日）.jpg` | CC BY-SA 4.0 | メイド理世 |
 | `Q125449394.jpg` | Redmi Turbo 3 | `Redmi Turbo 3 - 2024-09-27 02.jpg` | CC BY-SA 4.0 | Kcx36 |
 | `Q125510258.jpg` | OnePlus 12R | `OnePlus Ace 3 Black.jpg` | CC BY-SA 4.0 | X-SHLIED |
 | `Q125621098.jpg` | Nothing Phone 2a | `Nothing phone (2a).jpg` | CC BY-SA 4.0 | Kyu3a |
-| `Q127872524.jpg` | Vivo X100 | `Vivo X100.jpg` | CC BY-SA 4.0 | Vis M |
-| `Q130321406.png` | Asus ZenFone Max (M2) | `ASUS ZenFone Max M2 (Front 01).png` | CC BY-SA 4.0 | Motokoka |
 | `Q130533649.jpg` | Realme GT Neo3 | `Ealme GT Neo3 front.jpg` | CC BY-SA 4.0 | Maksdroider |
 | `Q130617376.jpg` | Samsung Galaxy F15 5G | `Samsung F15 5G screen.jpg` | CC BY-SA 4.0 | CSMention269 |
-| `Q131349208.jpg` | Oppo Find X8 | `OPPO Find X8 - About Phone (November 1, 2024).jpg` | CC BY-SA 4.0 | メイド理世 |
 | `Q131573456.jpg` | Motorola Edge 50 Neo | `Motorola Edge 50 Neo.jpg` | CC BY-SA 4.0 | Mannivu |
 | `Q133731268.jpg` | Xiaomi 13 Pro | `HK 中環 Central 德輔道中 Des Voeux Road 中環李錦記 Lee Kum Kee Central shop 中國移動 China Mobile Store smartphones September 2023 SS2 01.jpg` | CC BY-SA 4.0 | TERPERCIALOA 200 |
-| `Q133828220.jpg` | Huawei Honor P Smart Z | `Huawei Honor P Smart Z-7634.jpg` | CC BY-SA 4.0 | Raimond Spekking |
 | `Q134427477.jpg` | Redmi 14C | `Redmi 14C front.jpg` | CC BY-SA 4.0 | Maksdroider |
-| `Q134464097.jpg` | CMF Phone 2 Pro | `CMF Phone 2 Pro (white) 2025-05-08.jpg` | CC BY-SA 4.0 | Suntooooth |
 | `Q134549863.jpg` | Realme C11 | `Smartphone Realme C11 (2021).jpg` | CC BY 4.0 | Issuial |
 | `Q134959323.jpg` | Vivo V20 | `Vivo V20 back.jpg` | CC BY-SA 4.0 | BOO109 |
-| `Q135189882.png` | Nothing Phone 3 | `半夜首发！第一手拿到了Nothing Phone (3) ！灯条没了、背后多一个screen！-00.00.11.457.png` | CC BY 3.0 | 可恩Ke En |
 | `Q135535578.jpg` | Oppo Find N2 Flip | `Oppo Find N2 Flip.jpg` | CC BY-SA 4.0 | Vis M |
 | `Q135541275.jpg` | Xiaomi MIX Fold 4 | `Xiaomi MIX Fold 4 - About Phone (1) (November 1, 2024).jpg` | CC BY-SA 4.0 | メイド理世 |
 | `Q135652603.jpg` | Moto G51 5G | `Motorola Moto G51 5G (2023-08-03).jpg` | CC BY-SA 4.0 | PaulGorduiz106 |
 | `Q135838518.jpg` | Redmi 15 | `Redmi 15 front.jpg` | CC BY-SA 4.0 | Maksdroider |
-| `Q136398996.jpg` | Xiaomi 17 | `Xiaomi 17.jpg` | CC BY-SA 4.0 | 茅野ふたば |
 | `Q136543565.jpg` | Redmi A5 | `Redmi A5 front.jpg` | CC BY-SA 4.0 | Maksdroider |
-| `Q137208843.jpg` | Samsung Galaxy Z TriFold | `Samsung Galaxy Z Trifold.jpg` | CC BY-SA 4.0 | ΚΑ ΚΙΤ |
 | `Q137793862.jpg` | Samsung Galaxy S26 Ultra | `Galaxy S26 Ultra - 3.jpg` | CC BY-SA 4.0 | Kyu3a |
 | `Q138111185.png` | Honor 400 Smart | `Honor 400 Smart.png` | CC0 | Honor304929 |
 | `Q138818028.jpg` | Samsung Galaxy A37 5G | `Galaxy A37 5G Charcoal.jpg` | CC BY 4.0 | เวียร์ |
@@ -534,9 +518,9 @@ página del archivo en Commons documenta autoría y licencia exacta.
 | `Q28843594.jpg` | Nokia 5 | `Nokia 5.jpg` | CC BY-SA 4.0 | Antti Havukainen |
 | `Q29002235.jpg` | Huawei P10 | `Huawei P10.jpg` | CC BY-SA 4.0 | Petar Milošević |
 | `Q29578337.png` | Moto G5 | `Moto G5.png` | CC BY-SA 4.0 | Dienthoaiquangcao89 |
-| `Q30326193.jpg` | Huawei Honor 8 Pro | `Huawei Honor 8 Pro.jpg` | CC BY 4.0 | Huawei |
+| `Q30326193.jpg` | Honor 8 Pro | `Huawei Honor 8 Pro.jpg` | CC BY 4.0 | Huawei |
 | `Q30348040.jpg` | OnePlus 5 | `Oneplus 5 on display at London launch event - 5.jpg` | CC BY 4.0 | Domdomegg |
-| `Q31088292.jpg` | Huawei Honor 9 | `Huawei Honor 9.jpg` | CC BY 4.0 | Huawei |
+| `Q31088292.jpg` | Honor 9 | `Huawei Honor 9.jpg` | CC BY 4.0 | Huawei |
 | `Q38335609.jpg` | Samsung Galaxy J5 (2017) | `Samsung Galaxy J5 (2017, SM-J530F-DS)-0346.jpg` | CC BY-SA 4.0 | Raimond Spekking |
 | `Q41041058.jpg` | Moto X4 | `Motorola Moto X4 (X1900-7)-7733.jpg` | CC BY-SA 4.0 | Raimond Spekking |
 | `Q42253819.jpg` | Sony Xperia XZ1 Compact | `Sony Xperia XZ1 Compact.jpg` | CC BY-SA 4.0 | Puddin1975 |
@@ -558,12 +542,11 @@ página del archivo en Commons documenta autoría y licencia exacta.
 | `Q55632441.jpg` | Samsung Galaxy J4 | `سامسونج جلاكسي جي 4.jpg` | CC0 | ديفيد عادل وهبة خليل 2 |
 | `Q55632443.png` | Samsung Galaxy J6 | `Samsung Galaxy J6.png` | CC BY-SA 3.0 | Prométhée |
 | `Q55632444.jpg` | Samsung Galaxy J8 | `Samsung galaxy J8.jpg` | CC BY-SA 4.0 | Ahmadkurdi44 |
-| `Q55694209.jpg` | Nokia 5.1 Plus | `HMD Nokia 5.1 Plus Blue (front and rear).jpg` | CC BY-SA 4.0 | Multicherry |
 | `Q55707710.jpg` | Xiaomi 12S Ultra | `The back of Xiaomi 12SU.jpg` | CC BY-SA 4.0 | 洛微 |
 | `Q56272051.jpg` | Redmi 6A | `Redmi 6A Blue 13вікі.jpg` | CC BY-SA 4.0 | Nickispeaki |
 | `Q56272052.jpg` | Xiaomi Mi A2 Lite | `Xiaomi Mi A2 Lite (1).jpg` | CC BY-SA 4.0 | Bindydad123 |
 | `Q56368140.jpg` | Huawei P20 Pro | `Huawei P20 Pro in Paris.jpg` | CC BY 2.0 | GillyBerlin |
-| `Q56401768.jpg` | Huawei Honor 8 Lite | `Huawei Honor 8 Lite.jpg` | CC BY-SA 4.0 | Kskhh |
+| `Q56401768.jpg` | Honor 8 Lite | `Huawei Honor 8 Lite.jpg` | CC BY-SA 4.0 | Kskhh |
 | `Q57393039.jpg` | Huawei Mate 20 Pro | `Huawei Mate 20 Pro (LYA-L09) Backside.jpg` | CC BY 4.0 | とらもん192 |
 | `Q57972349.jpg` | OnePlus 6T | `Oneplus6t front.jpg` | CC0 | TimotheusB |
 | `Q58413250.jpg` | Huawei P20 Lite | `Huawei P20 Lite (Reverso).jpg` | CC BY-SA 4.0 | EACC |
@@ -571,12 +554,10 @@ página del archivo en Commons documenta autoría y licencia exacta.
 | `Q59154308.jpg` | Nokia 7.1 | `Nokia 7.1 on.JPG` | Public domain | MKFI |
 | `Q60199034.jpg` | Pocophone F1 | `Xiaomi Poco F1 on Wikipedia.jpg` | CC BY 4.0 | Petar Milošević |
 | `Q60762065.png` | Samsung Galaxy A8s | `Samsung Galaxy A8s.png` | CC BY-SA 4.0 | Littlerabbit506 |
-| `Q61369883.jpg` | Huawei Y6 2018 | `Huawei Y6 (2018, ATU-L21)-2462.jpg` | CC BY-SA 4.0 | Raimond Spekking |
 | `Q61783122.png` | Samsung Galaxy Fold | `Samsung Galaxy Fold.png` | CC BY-SA 4.0 | Louis PL |
 | `Q61996965.jpg` | Nokia 9 PureView | `Nokia 9 Pureview 2.jpg` | CC BY-SA 4.0 | TGspot |
 | `Q62793603.jpg` | Huawei P30 Pro | `Huawei P30 Pro Rückseite.jpg` | CC BY-SA 4.0 | Designer2k2 |
 | `Q64550581.jpg` | Xiaomi 13 Lite | `Xiaomi 13 Lite front.jpg` | CC BY-SA 4.0 | Maksdroider |
-| `Q65042230.jpg` | Nokia 1 Plus | `Nokia 1 Plus-3095.jpg` | CC BY-SA 4.0 | Raimond Spekking |
 | `Q65047746.jpg` | Xiaomi Mi 9 SE | `Xiaomi Mi 9 SE.jpg` | CC BY-SA 4.0 | Noahhs4 |
 | `Q65078408.jpg` | Samsung Galaxy M30 | `Samsung Galaxy M30 mobile.jpg` | CC BY-SA 4.0 | Gpkp |
 | `Q65087814.jpg` | Samsung Galaxy A8 Star | `Samsung Galaxy A8 Star.jpg` | CC BY-SA 4.0 | Hajoon0102 |
@@ -588,7 +569,7 @@ página del archivo en Commons documenta autoría y licencia exacta.
 | `Q65667471.png` | Xiaomi Mi A3 | `Xiaomi Mi A3 blue.png` | CC BY-SA 4.0 | J.avanzado |
 | `Q68163697.png` | Redmi Note 8 Pro | `Redmi Note8 Pro.png` | CC BY-SA 4.0 | X-SHLIED |
 | `Q71268150.jpg` | Huawei P30 | `Huawei P30 camera.jpg` | CC BY-SA 4.0 | TGspot - (Huawei P30) |
-| `Q73168617.jpg` | realme 3 | `REALME 3.jpg` | CC BY-SA 4.0 | Ajay kumar PHOTOGRAPHY |
+| `Q73168617.jpg` | Realme 3 | `REALME 3.jpg` | CC BY-SA 4.0 | Ajay kumar PHOTOGRAPHY |
 | `Q73169062.jpg` | Realme 5 | `Realme 5 phone image.jpg` | CC BY-SA 4.0 | Paowee |
 | `Q73171196.jpg` | Redmi Note 8 | `Redmi Note 8-0607.jpg` | CC BY-SA 4.0 | Raimond Spekking |
 | `Q73325769.jpg` | Realme C1 | `Realme C1.jpg` | CC BY-SA 4.0 | Dienthoaiquangcao62 |
@@ -612,8 +593,6 @@ página del archivo en Commons documenta autoría y licencia exacta.
 | `Q97380033.jpg` | ZTE Axon 10 Pro | `Front of ZTE Axon 10 Pro.jpg` | CC BY-SA 4.0 | Willwongprd |
 | `Q98079121.jpg` | Samsung Galaxy J6+ | `Samsung Galaxy J6+.jpg` | CC BY-SA 4.0 | Ahmadkurdi44 |
 | `Q98279800.jpg` | Xiaomi Mi 10 Ultra | `Xiaomi Mi 10 Ultra back.jpg` | CC BY-SA 4.0 | 30000lightyears |
-| `Q98301286.jpg` | realme 6 | `Real me 6 mobile phone.jpg` | CC BY-SA 4.0 | Shivaniwebgeo |
-| `Q98762009.jpg` | Asus ZenFone 7 | `ASUS Zenfone-7.jpg` | CC BY-SA 4.0 | ROC-C.Z |
+| `Q98762009.jpg` | ASUS ZenFone 7 | `ASUS Zenfone-7.jpg` | CC BY-SA 4.0 | ROC-C.Z |
 | `Q98959915.jpg` | POCO X3 | `Plasma Mobile on Xiaomi POCO X3 NFC.jpg` | CC0 | Ungeskriptet |
 | `Q99179540.png` | Samsung Galaxy A01 | `Galaxy A01.png` | CC BY-SA 4.0 | Marcusph |
-| `Q99701353.jpg` | Oppo F11 Pro | `Oppo F11 Pro (1).jpg` | CC BY-SA 4.0 | Dienthoaiquangcao2 |
