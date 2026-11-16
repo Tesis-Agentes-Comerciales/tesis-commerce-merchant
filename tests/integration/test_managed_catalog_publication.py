@@ -1,13 +1,15 @@
 from typing import Any, cast
-from uuid import uuid4
+from uuid import UUID, uuid4
 
+import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
 from commerce_lab.api import app
 from commerce_lab.context import issue_lab_session
-from commerce_lab.db import migrate
+from commerce_lab.db import database_url, migrate
 from commerce_lab.feed import current_feed
+from commerce_lab.fixtures.ampliado import ampliado_offers
 from commerce_lab.managed_catalog import import_current_catalog, managed_catalog_context
 
 
@@ -89,3 +91,44 @@ def test_managed_catalog_checkout_uses_live_clock_and_cop() -> None:
     )
     assert canceled.status_code == 200
     assert canceled.json()["status"] == "canceled"
+
+
+def _managed_snapshots(run_id: UUID) -> dict[str, dict[str, Any]]:
+    with psycopg.connect(database_url()) as connection:
+        rows = connection.execute(
+            "SELECT offer_id, snapshot FROM catalog_offers WHERE run_id = %s", (run_id,)
+        ).fetchall()
+    return {row[0]: row[1] for row in rows}
+
+
+def test_ampliado_is_explicit_and_only_adds_missing_offers() -> None:
+    migrate()
+    import_current_catalog()
+    context = managed_catalog_context()
+    assert context is not None
+    before = _managed_snapshots(context[0])
+    expected = {offer.id for offer in ampliado_offers()}
+
+    extended = import_current_catalog("ampliado")
+    after = _managed_snapshots(context[0])
+    assert extended["run_id"] == str(context[0])
+    # Otra prueba pudo ampliarlo antes; lo que importa es el estado final.
+    assert extended["status"] in {"extended", "already_imported"}
+    assert set(after) == expected
+    # Lo que ya existía, con sus precios y stock, no se toca.
+    assert {offer_id: after[offer_id] for offer_id in before} == before
+
+    assert import_current_catalog("ampliado")["status"] == "already_imported"
+    # Volver a p0 no borra nada: el catálogo persistente solo crece.
+    assert import_current_catalog()["status"] == "already_imported"
+    assert set(_managed_snapshots(context[0])) == expected
+    with psycopg.connect(database_url()) as connection:
+        row = connection.execute(
+            "SELECT manifest FROM experiment_runs WHERE run_id = %s", (context[0],)
+        ).fetchone()
+    assert row is not None
+    assert row[0]["catalog"] == "ampliado"
+    assert row[0]["offer_count"] == len(expected)
+
+    _, products = current_feed(base_url="https://merchant.example.test")
+    assert len(products) == len({offer.product_id for offer in ampliado_offers()})

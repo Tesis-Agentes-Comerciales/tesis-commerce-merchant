@@ -21,8 +21,9 @@ El namespace Python sigue siendo `commerce_lab`.
 
 ## Perfil P0 implementado
 
-- El surtido actual importado contiene más de 140 smartphones y más
-  de 300 variantes. La importación ocurre una sola vez; el catálogo persistente
+- El surtido P0 importado contiene 141 smartphones y 310 variantes; el catálogo ampliado,
+  opcional, suma más modelos (ver [Catálogos P0 y ampliado](#catálogos-p0-y-ampliado)).
+  La importación ocurre una sola vez; el catálogo persistente
   del merchant conserva los cambios de precio e inventario entre reinicios.
   Cada variante del feed usa el ID aceptado por `POST /checkout_sessions`.
 - Discovery público `GET /.well-known/acp.json`, ACP `2026-04-17`, transporte
@@ -108,8 +109,9 @@ uv run python -m commerce_lab.managed_catalog import-current
 uv run uvicorn commerce_lab.api:app --host 127.0.0.1 --port 4120
 ```
 
-`import-current` solo llena un merchant vacío; repetirlo no sobrescribe precios
-ni stock. Para editarlos use `uv run python -m commerce_lab.managed_catalog
+`import-current` solo llena un merchant vacío con el catálogo P0; repetirlo no sobrescribe
+precios ni stock. Con `--catalog ampliado` carga el catálogo ampliado, también sobre una base que
+ya tiene uno (ver [Catálogos P0 y ampliado](#catálogos-p0-y-ampliado)). Para editarlos use `uv run python -m commerce_lab.managed_catalog
 update-offer VARIANT_ID --price-minor 123450000 --stock 5`. Los importes son
 centavos de COP. `GET /feeds/current` refleja los cambios sin reexportar archivos;
 el checkout revalida el snapshot autoritativo. La ruta no implementa la API
@@ -150,6 +152,46 @@ Para completar compras configure `PAYMENT_PROVIDER_URL`, `PAYMENT_MERCHANT_BEARE
 `PAYMENT_MERCHANT_ID` con el proveedor sandbox separado. Sin esa credencial, `/complete` falla
 cerrado con `PROVIDER_UNAVAILABLE`; el merchant nunca acepta un token por su prefijo como
 evidencia de pago.
+
+## Catálogos P0 y ampliado
+
+El merchant tiene dos catálogos de smartphones. Los modelos salen de Wikidata y las fotos de
+Wikimedia Commons, descargadas una vez a `assets/products/` con su procedencia en
+`PROVENANCE.md`. Precio, stock, colores, condición, capacidades, envío y plazo los fija el mismo
+generador determinista (`fixtures/generated.py`) a partir del identificador de cada modelo.
+
+| Catálogo | Fuente | Tamaño | Uso |
+| --- | --- | --- | --- |
+| P0 | `catalog_snapshot.json` | 141 productos, 310 variantes | Predeterminado en todo: semillas de prueba y evaluación, `verify()`, feed de episodios y catálogo administrado |
+| Ampliado | P0 más `catalog_snapshot_ampliado.json` | 287 productos, 606 variantes | Opcional, solo para el catálogo administrado de la vitrina y la demo |
+
+El ampliado suma 146 modelos y 296 variantes, sobre todo de gama media y baja: Xiaomi (con Redmi
+y POCO), Huawei, Honor, Nokia, Realme, Nothing, Tecno, ASUS, Oppo, Vivo y ZTE, que P0 no tiene, y
+más Samsung, Motorola, Sony, OnePlus y Google. No repite ningún modelo de P0 y las variantes de P0
+quedan idénticas. Solo entran modelos con una foto real en Commons bajo licencia libre (CC0, CC BY,
+CC BY-SA, GFDL o dominio público), nunca con cláusulas NC o ND; las que mostraban otro modelo, una
+vitrina, una captura de pantalla o un equipo roto se descartaron a mano. También quedan fuera los modelos a los
+que el generador les pone un precio absurdo para su gama, como un Nokia 1 Plus de gama alta o un
+plegable a precio de gama media (`AMPLIADO_MISPRICED`).
+
+Las semillas nunca lo usan, sin importar el entorno. Las evaluaciones del agente siembran P0 por
+corrida (`FIXTURE_VERSION = "p0-catalog-v13"`) y sus casos fijan variantes y respuestas como "el
+teléfono negro más barato". Con más productos esas respuestas cambiarían y los resultados
+oficiales dejarían de ser comparables. `tests/test_catalogo_ampliado.py` fija el hash del fixture
+P0 para comprobarlo.
+
+Para cargar el ampliado en la base de desarrollo, vacía o con un catálogo ya importado:
+
+```sh
+uv run python -m commerce_lab.managed_catalog import-current --catalog ampliado
+```
+
+Sobre un catálogo existente solo inserta las variantes que faltan. Las de P0 conservan los precios
+y el stock que tengan, y repetir el comando no cambia nada. El catálogo administrado solo crece:
+`import-current` sin `--catalog` no quita los modelos ampliados, así que volver a P0 exige partir
+de una base vacía. En la demo de Railway, la variable `MERCHANT_CATALOG=ampliado` hace lo mismo
+al arrancar; sin ella el bootstrap importa P0. La vitrina no necesita cambios: muestra lo que
+publique el feed.
 
 ## Verificación
 
@@ -204,7 +246,8 @@ PostgreSQL dedicada y privada, configure `DATABASE_URL` para la base `tesis_lab`
 `MERCHANT_ALLOW_REMOTE_DB=true` permite únicamente hosts `*.railway.internal`; en local sigue
 exigiéndose loopback. El bootstrap migra, importa el surtido solo si no existe un catálogo
 administrado y registra el hash de `MERCHANT_AGENT_BEARER_TOKEN` sin imprimir el Bearer. Reiniciar
-no restablece precios ni stock.
+no restablece precios ni stock. Importa P0 salvo que `MERCHANT_CATALOG=ampliado` pida el
+[catálogo ampliado](#catálogos-p0-y-ampliado), que también se agrega a un catálogo existente.
 
 Configure `ACP_API_BASE_URL` con el origen HTTPS público del merchant. El agente debe usar ese
 mismo origen como `MERCHANT_BASE_URL` y el mismo Bearer. `PAYMENT_PROVIDER_URL` y
