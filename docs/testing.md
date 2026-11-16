@@ -95,5 +95,6 @@ porque casi todo el Merchant pasa por PostgreSQL, así que no lleva umbral propi
   capa 2: cada una crea sus episodios y checkouts.
 - No medir tiempos con umbrales absolutos ni depender del día real sin tolerar el cambio de
   fecha.
-- Fijar hashes solo de contratos congelados (el esquema ACP vendorizado en `vendor/acp`, que
-  verifica `tests/contracts/test_acp.py`).
+- Fijar hashes solo de contratos congelados: el esquema ACP vendorizado en `vendor/acp`, que
+  verifica `tests/contracts/test_acp.py`, y el fixture P0 que siembran las evaluaciones
+  (`FIXTURE_VERSION`), que verifica `tests/test_catalogo_ampliado.py`.
