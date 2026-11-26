@@ -308,7 +308,7 @@ class ACPCheckoutAdapter:
                 {
                     "error": {
                         "code": "INVALID_INPUT",
-                        "message": "Unsupported update fields for P0 profile.",
+                        "message": "Unsupported update fields.",
                     }
                 }
             )
@@ -552,24 +552,6 @@ class ACPCheckoutAdapter:
                     "severity": "info",
                     "content_type": "plain",
                     "content": "Fulfillment option selection is missing.",
-                }
-            )
-        if (
-            readiness.buyer_complete
-            and readiness.fulfillment_complete
-            and readiness.fulfillment_selected
-            and readiness.commerce_terms_valid
-            and not readiness.payment_capability_available
-        ):
-            messages.append(
-                {
-                    "type": "info",
-                    "severity": "info",
-                    "content_type": "plain",
-                    "content": (
-                        "Buyer/fulfillment readiness is complete, but payment capability is not"
-                        " implemented until the payment-sandbox ticket."
-                    ),
                 }
             )
 

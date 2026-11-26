@@ -9,6 +9,7 @@ dependencies = [
   "fastapi>=0.116,<1",
   "httpx>=0.28,<1",
   "jsonschema[format]>=4.25,<5",
+  "jwcrypto>=1.5.6,<2",
   "psycopg[binary]>=3.2,<4",
   "pydantic>=2.11,<3",
   "pydantic-settings>=2.10,<3",
@@ -21,7 +22,6 @@ dependencies = [
 dev = [
   "pyright>=1.1.405,<2",
   "pytest>=8.4,<10",
-  "pytest-cov>=7.1,<8",
   "ruff>=0.12,<1",
 ]
 
@@ -44,13 +44,6 @@ markers = [
   "mutates_checkout_state: updates, cancels, completes or rewrites a persisted checkout, its order or creation evidence; deselect with -m 'not mutates_checkout_state'",
 ]
 
-[tool.coverage.run]
-source_pkgs = ["commerce_lab"]
-branch = true
-
-[tool.coverage.report]
-skip_empty = true
-
 [tool.pyright]
 include = ["src", "tests"]
 pythonVersion = "3.12"
@@ -64,6 +57,3 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101"]

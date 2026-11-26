@@ -108,13 +108,13 @@ def build_feed(
 ) -> tuple[dict[str, object], list[dict[str, object]]]:
     """Project authoritative Offer snapshots to Products, grouping variants by product_id."""
     if not offers:
-        raise ValueError("P0 feed requires merchant offers")
+        raise ValueError("The feed requires merchant offers")
     if len({offer.id for offer in offers}) != len(offers):
-        raise ValueError("P0 feed requires unique variant IDs")
+        raise ValueError("The feed requires unique variant IDs")
     if any(offer.pricing.currency != "cop" for offer in offers):
-        raise ValueError("P0 feed requires COP merchant snapshots")
+        raise ValueError("The feed requires COP merchant snapshots")
     if len({offer.delivery_context.country for offer in offers}) != 1:
-        raise ValueError("P0 feed requires one target country")
+        raise ValueError("The feed requires one target country")
 
     origin = (base_url or get_settings().acp_api_base_url).rstrip("/")
     metadata: dict[str, object] = {
@@ -210,29 +210,12 @@ def _read_offers(run_id: str | None) -> list[Offer]:
                 (UUID(run_id), FIXTURE_VERSION),
             ).fetchone()
         if selected is None:
-            raise ValueError("Seed a P0 merchant episode before exporting the feed")
+            raise ValueError("Seed a merchant episode before exporting the feed")
         rows = connection.execute(
             "SELECT snapshot FROM catalog_offers WHERE run_id = %s ORDER BY offer_id",
             (selected[0],),
         ).fetchall()
     return [Offer.model_validate(row[0]) for row in rows]
-
-
-def delivery_terms(offers: list[Offer]) -> dict[str, dict[str, int]]:
-    """Envío, total y plazo de cada variante, que el comercio fija antes del checkout.
-
-    El Product del feed ACP 2026-04-17 no tiene campo de envío ni admite propiedades
-    adicionales, así que estos términos viajan aparte, por id de variante, y solo en la
-    respuesta de la vitrina. Los montos están en la moneda del precio de la variante.
-    """
-    return {
-        offer.id: {
-            "shipping_total_minor": offer.pricing.shipping_total_minor,
-            "total_minor": offer.pricing.total_minor,
-            "delivery_days": offer.delivery_days,
-        }
-        for offer in offers
-    }
 
 
 def _merchant_offers() -> tuple[list[Offer], str]:
@@ -267,16 +250,6 @@ def current_feed(
     """Publish the merchant-managed catalog for buyer agents."""
     offers, updated_at = _merchant_offers()
     return _merchant_feed(offers, updated_at, base_url)
-
-
-def current_storefront_catalog(*, base_url: str | None = None) -> dict[str, object]:
-    """The published feed plus the per-variant delivery terms the storefront shows.
-
-    `metadata` and `products` are exactly the feed; `delivery` is read from the same snapshot.
-    """
-    offers, updated_at = _merchant_offers()
-    metadata, products = _merchant_feed(offers, updated_at, base_url)
-    return {"metadata": metadata, "products": products, "delivery": delivery_terms(offers)}
 
 
 def export_feed(
@@ -314,7 +287,7 @@ def main() -> None:
             arguments.output_dir, run_id=arguments.run_id, base_url=arguments.base_url
         )
     except Exception:
-        parser.exit(1, "P0 feed export failed. Check merchant database and snapshots.\n")
+        parser.exit(1, "Feed export failed. Check the merchant database and snapshots.\n")
     print(json.dumps(result, ensure_ascii=False))
 
 

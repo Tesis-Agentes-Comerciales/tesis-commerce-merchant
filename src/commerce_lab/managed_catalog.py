@@ -17,7 +17,7 @@ from commerce_lab.fixtures.ampliado import ampliado_offers
 MANAGED_CATALOG_VERSION = "merchant-catalog-v1"
 MANAGED_ACTOR_ID = "merchant-agent"
 OFFER_LIFETIME = timedelta(days=365)
-# `p0` es el predeterminado en todas partes. `ampliado` es opt-in para la vitrina y la demo.
+# `p0` es el predeterminado en todas partes. `ampliado` solo se carga si se pide explícitamente.
 CatalogName = Literal["p0", "ampliado"]
 CATALOGS: tuple[CatalogName, ...] = get_args(CatalogName)
 

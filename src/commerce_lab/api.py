@@ -7,7 +7,6 @@ from uuid import uuid4
 
 import psycopg
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -44,7 +43,7 @@ from commerce_lab.contracts import (
 from commerce_lab.creation_lookup_api import creation_lookup_router
 from commerce_lab.db import DatabaseNotReady, check_database_ready, database_url
 from commerce_lab.discovery import discovery_document
-from commerce_lab.feed import current_feed, current_storefront_catalog
+from commerce_lab.feed import current_feed
 from commerce_lab.guarded_creation_api import guarded_creation_router
 from commerce_lab.guarded_lookup_api import guarded_lookup_router
 from commerce_lab.payment_sandbox import config_schema, handler_spec, instrument_schema
@@ -75,7 +74,7 @@ class _Ap2ChainRejected(Exception):
 
 
 app = FastAPI(
-    title="Commerce Lab",
+    title="Tesis Commerce Merchant",
     version=__version__,
     docs_url=None,
     redoc_url=None,
@@ -94,42 +93,10 @@ _PUBLIC_ERROR_CODES = {
 
 # Fotos de producto descargadas una vez desde Wikimedia Commons (ver
 # scripts/catalog/fetch_product_images.py). Servirlas desde el comercio evita depender de un
-# tercero que limita las peticiones cuando la vitrina pide decenas a la vez.
+# tercero que limita las peticiones cuando la interfaz del agente pide decenas a la vez.
 _ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 if _ASSETS_DIR.is_dir():
     app.mount("/assets", StaticFiles(directory=_ASSETS_DIR), name="assets")
-
-
-# El storefront es otro origen y solo lee. Sin credenciales y solo GET: nada del canal ACP,
-# que sigue exigiendo Bearer, queda expuesto por aquí.
-_storefront_origin = get_settings().storefront_origin
-if _storefront_origin:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[_storefront_origin],
-        allow_credentials=False,
-        allow_methods=["GET"],
-        allow_headers=[],
-    )
-
-
-@app.get("/storefront/catalog", include_in_schema=False)
-async def storefront_catalog() -> JSONResponse:
-    """Read-only catalog view for the human storefront.
-
-    The ACP feed plus `delivery`, the per-variant shipping and delivery days that the feed
-    schema has no place for; `/feeds/current` stays pure ACP.
-    """
-    try:
-        catalog = await run_in_threadpool(
-            current_storefront_catalog, base_url=get_settings().acp_api_base_url
-        )
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Merchant catalog is unavailable.",
-        ) from None
-    return JSONResponse(content=catalog, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/feeds/current", include_in_schema=False)

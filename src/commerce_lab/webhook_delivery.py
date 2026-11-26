@@ -335,4 +335,4 @@ def update_order_to_processing(
         return changed
     if order.status == "processing":
         return order
-    raise ValueError("Order is not eligible for P0 processing update")
+    raise ValueError("Order is not eligible for the processing update")

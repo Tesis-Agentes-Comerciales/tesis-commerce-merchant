@@ -1,19 +1,35 @@
 name: tesis-commerce-merchant
+
+x-postgres: &postgres
+  image: postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+  environment:
+    POSTGRES_USER: tesis_dev
+    POSTGRES_PASSWORD: tesis_local_only
+    POSTGRES_DB: tesis_lab
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U tesis_dev -d tesis_lab"]
+    interval: 2s
+    timeout: 3s
+    retries: 20
+
 services:
   postgres:
-    image: postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
-    environment:
-      POSTGRES_USER: tesis_dev
-      POSTGRES_PASSWORD: tesis_local_only
-      POSTGRES_DB: tesis_lab
+    <<: *postgres
     ports:
       - "127.0.0.1:${MERCHANT_PG_PORT:-55433}:5432"
     volumes:
       - merchant_pgdata:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tesis_dev -d tesis_lab"]
-      interval: 2s
-      timeout: 3s
-      retries: 20
+
+  # Base desechable de `scripts/check.sh --db`: otro puerto, datos en memoria y sin volumen ni red
+  # propia, así las pruebas nunca escriben en la base de desarrollo y no dejan nada en Docker.
+  postgres-test:
+    <<: *postgres
+    profiles: [test]
+    network_mode: bridge
+    ports:
+      - "127.0.0.1:${MERCHANT_TEST_PG_PORT:-55434}:5432"
+    tmpfs:
+      - /var/lib/postgresql
+
 volumes:
   merchant_pgdata:
