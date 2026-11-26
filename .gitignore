@@ -1,11 +1,7 @@
-output.txt
-.env.development
+# Configuración local
 .env
-.env.local
 .env.*
 !.env.example
-.local/
-artifacts/runs/
 .DS_Store
 
 # Python
@@ -13,22 +9,10 @@ artifacts/runs/
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.mypy_cache/
 .ruff_cache/
-.coverage
-htmlcov/
 build/
 dist/
 *.egg-info/
 
-# Local databases and generated data
-*.db
-*.db-*
-*.duckdb
-*.duckdb.wal
-
-# Optional documentation tooling
-node_modules/
-
+# Registro local que escriben `db seed` y `db verify`
 artifacts/preparation/
-artifacts/feed/
