@@ -108,13 +108,13 @@ def build_feed(
 ) -> tuple[dict[str, object], list[dict[str, object]]]:
     """Project authoritative Offer snapshots to Products, grouping variants by product_id."""
     if not offers:
-        raise ValueError("P0 feed requires merchant offers")
+        raise ValueError("The feed requires merchant offers")
     if len({offer.id for offer in offers}) != len(offers):
-        raise ValueError("P0 feed requires unique variant IDs")
+        raise ValueError("The feed requires unique variant IDs")
     if any(offer.pricing.currency != "cop" for offer in offers):
-        raise ValueError("P0 feed requires COP merchant snapshots")
+        raise ValueError("The feed requires COP merchant snapshots")
     if len({offer.delivery_context.country for offer in offers}) != 1:
-        raise ValueError("P0 feed requires one target country")
+        raise ValueError("The feed requires one target country")
 
     origin = (base_url or get_settings().acp_api_base_url).rstrip("/")
     metadata: dict[str, object] = {
@@ -210,7 +210,7 @@ def _read_offers(run_id: str | None) -> list[Offer]:
                 (UUID(run_id), FIXTURE_VERSION),
             ).fetchone()
         if selected is None:
-            raise ValueError("Seed a P0 merchant episode before exporting the feed")
+            raise ValueError("Seed a merchant episode before exporting the feed")
         rows = connection.execute(
             "SELECT snapshot FROM catalog_offers WHERE run_id = %s ORDER BY offer_id",
             (selected[0],),
@@ -287,7 +287,7 @@ def main() -> None:
             arguments.output_dir, run_id=arguments.run_id, base_url=arguments.base_url
         )
     except Exception:
-        parser.exit(1, "P0 feed export failed. Check merchant database and snapshots.\n")
+        parser.exit(1, "Feed export failed. Check the merchant database and snapshots.\n")
     print(json.dumps(result, ensure_ascii=False))
 
 

@@ -308,7 +308,7 @@ class ACPCheckoutAdapter:
                 {
                     "error": {
                         "code": "INVALID_INPUT",
-                        "message": "Unsupported update fields for P0 profile.",
+                        "message": "Unsupported update fields.",
                     }
                 }
             )

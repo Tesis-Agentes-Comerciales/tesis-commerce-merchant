@@ -74,7 +74,7 @@ class _Ap2ChainRejected(Exception):
 
 
 app = FastAPI(
-    title="Commerce Lab",
+    title="Tesis Commerce Merchant",
     version=__version__,
     docs_url=None,
     redoc_url=None,
