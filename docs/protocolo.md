@@ -35,9 +35,9 @@ nunca mueve dinero real.
   comercio no tiene un proceso propio que la vacíe: `python -m commerce_lab.db webhook-dispatch`
   entrega los avisos pendientes, firmados con `MERCHANT_WEBHOOK_SECRET`, a `WEBHOOK_RECEIVER_URL`,
   con hasta cinco intentos.
-- **Errores.** Los códigos públicos van en minúsculas, por ejemplo `missing_api_version`,
-  `out_of_stock` o `payment_declined`. Por dentro, el dominio usa nombres tipados en mayúsculas y la
-  API los traduce.
+- **Errores.** Algunos códigos se publican en minúsculas, como `missing_api_version`,
+  `out_of_stock` o `payment_declined`; los demás salen con su nombre interno en mayúsculas, como
+  `INVALID_INPUT` o `CHECKOUT_NOT_FOUND`.
 
 ## AP2
 
@@ -50,9 +50,9 @@ estándar de ACP.
   `MERCHANT_AP2_PRIVATE_KEY_PEM` y sin ella fallan cerrado.
 - **Completar con mandato.** `POST /checkout_sessions/{id}/ap2/complete` verifica el mandato de
   checkout que firma el agente con su clave (`MERCHANT_AP2_AGENT_JWK_JSON`): firma, hash,
-  instantánea y revisión. Si todo cuadra, completa la compra y devuelve un recibo firmado. Con
-  `MERCHANT_AP2_REQUIRED=true`, el `/complete` de ACP queda bloqueado y solo se compra por esta
-  ruta.
+  instantánea y revisión. Si todo cuadra, completa la compra y devuelve un recibo firmado. Solo
+  funciona con `MERCHANT_AP2_REQUIRED=true` y la clave del agente (sin ellas responde 503); en ese
+  modo el `/complete` de ACP queda bloqueado y solo se compra por esta ruta.
 - **Compra delegada, sin la persona presente.** El mandato llega como una cadena de dos partes,
   `<abierto>~~<cerrado>`. El comercio la verifica con la misma clave del agente y comprueba que él
   está entre los comercios permitidos (su identificador es `PAYMENT_MERCHANT_ID`) y que las líneas

@@ -26,7 +26,7 @@ step uv lock --check
 step uv run ruff format --check .
 step uv run ruff check .
 step uv run pyright
-step uv run pytest -q
+step env -u RUN_DB_INTEGRATION uv run pytest -q
 
 if "$with_db"; then
   # El servicio `postgres-test` de compose.yaml: otro puerto, datos en memoria y sin volumen.

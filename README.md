@@ -39,7 +39,7 @@ ACP, AP2 y el manejo de la moneda se detallan en [docs/protocolo.md](docs/protoc
 | Comando (`uv run python -m commerce_lab.…`) | Para qué |
 | --- | --- |
 | `managed_catalog update-offer <id> --price-minor N --stock N` | Cambia el precio (en centavos de COP) o el stock de una variante |
-| `db webhook-dispatch` | Entrega los webhooks de órdenes pendientes; el comercio no tiene un proceso propio que lo haga |
+| `db webhook-dispatch --limit N` | Entrega hasta N webhooks de órdenes pendientes (uno por defecto); el comercio no tiene un proceso propio que lo haga |
 | `db order-update <run_id> <actor_id> <order_id>` | Pasa una orden de confirmada a en proceso |
 | `db run-checkouts <run_id>` | Lista los checkouts y las órdenes de una corrida |
 
