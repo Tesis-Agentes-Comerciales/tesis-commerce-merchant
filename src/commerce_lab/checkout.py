@@ -416,11 +416,6 @@ class CheckoutService:
                         scenario_at,
                     )
                     return failure
-                if not payment_capability_available():
-                    return _failure(
-                        "PROVIDER_UNAVAILABLE",
-                        "The sandbox payment capability is unavailable.",
-                    )
                 if payment_data.get("handler_id") != "tesis_sandbox":
                     return _failure("INVALID_INPUT", "Unsupported payment handler.")
                 try:
