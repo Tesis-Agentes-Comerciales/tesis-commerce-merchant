@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
-from commerce_lab.feed import build_feed, delivery_terms, export_feed
+from commerce_lab.feed import build_feed, export_feed
 from commerce_lab.fixtures import fresh_p0_offers
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -146,27 +146,24 @@ def test_every_product_has_an_image_served_by_the_merchant() -> None:
         assert not url.endswith(f"/assets/products/{product['id']}.jpg")
 
 
-def test_delivery_terms_publish_each_variant_shipping_total_and_days() -> None:
-    offers = fresh_p0_offers()
-    terms = delivery_terms(offers)
-    assert set(terms) == {offer.id for offer in offers}
+def test_each_variant_carries_its_shipping_total_and_delivery_days() -> None:
+    offers = {offer.id: offer for offer in fresh_p0_offers()}
     # Bajo COP 2.000.000 el envío cuesta COP 25.000.
-    assert terms["Q100286751-256GB"] == {
-        "shipping_total_minor": 25_000_00,
-        "total_minor": 1_335_000_00,
-        "delivery_days": 4,
-    }
+    cheap = offers["Q100286751-256GB"]
+    assert cheap.pricing.shipping_total_minor == 25_000_00
+    assert cheap.pricing.total_minor == 1_335_000_00
+    assert cheap.delivery_days == 4
     # Desde COP 2.000.000 es gratis, con el límite incluido.
-    assert terms["Q138529589-256GB"] == {
-        "shipping_total_minor": 0,
-        "total_minor": 2_000_000_00,
-        "delivery_days": 6,
-    }
-    # El total que ve la vitrina es el precio publicado en el feed más el envío.
-    _, products = build_feed(offers, base_url=ORIGIN)
+    edge = offers["Q138529589-256GB"]
+    assert edge.pricing.shipping_total_minor == 0
+    assert edge.pricing.total_minor == 2_000_000_00
+    assert edge.delivery_days == 6
+    # El feed publica solo el precio del ítem; el checkout le suma el envío.
+    _, products = build_feed(list(offers.values()), base_url=ORIGIN)
     for product in products:
         for variant in cast(list[dict[str, Any]], product["variants"]):
-            term = terms[variant["id"]]
-            assert term["total_minor"] == variant["price"]["amount"] + term["shipping_total_minor"]
-            assert term["shipping_total_minor"] in {0, 25_000_00}
-            assert 1 <= term["delivery_days"] <= 8
+            offer = offers[variant["id"]]
+            shipping = offer.pricing.shipping_total_minor
+            assert offer.pricing.total_minor == variant["price"]["amount"] + shipping
+            assert shipping in {0, 25_000_00}
+            assert 1 <= offer.delivery_days <= 8

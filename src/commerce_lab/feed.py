@@ -218,23 +218,6 @@ def _read_offers(run_id: str | None) -> list[Offer]:
     return [Offer.model_validate(row[0]) for row in rows]
 
 
-def delivery_terms(offers: list[Offer]) -> dict[str, dict[str, int]]:
-    """Envío, total y plazo de cada variante, que el comercio fija antes del checkout.
-
-    El Product del feed ACP 2026-04-17 no tiene campo de envío ni admite propiedades
-    adicionales, así que estos términos viajan aparte, por id de variante, y solo en la
-    respuesta de la vitrina. Los montos están en la moneda del precio de la variante.
-    """
-    return {
-        offer.id: {
-            "shipping_total_minor": offer.pricing.shipping_total_minor,
-            "total_minor": offer.pricing.total_minor,
-            "delivery_days": offer.delivery_days,
-        }
-        for offer in offers
-    }
-
-
 def _merchant_offers() -> tuple[list[Offer], str]:
     """Read the merchant-managed catalog and its last update in one snapshot."""
     with psycopg.connect(database_url()) as connection, connection.transaction():
@@ -267,16 +250,6 @@ def current_feed(
     """Publish the merchant-managed catalog for buyer agents."""
     offers, updated_at = _merchant_offers()
     return _merchant_feed(offers, updated_at, base_url)
-
-
-def current_storefront_catalog(*, base_url: str | None = None) -> dict[str, object]:
-    """The published feed plus the per-variant delivery terms the storefront shows.
-
-    `metadata` and `products` are exactly the feed; `delivery` is read from the same snapshot.
-    """
-    offers, updated_at = _merchant_offers()
-    metadata, products = _merchant_feed(offers, updated_at, base_url)
-    return {"metadata": metadata, "products": products, "delivery": delivery_terms(offers)}
 
 
 def export_feed(
