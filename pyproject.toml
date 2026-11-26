@@ -21,7 +21,6 @@ dependencies = [
 dev = [
   "pyright>=1.1.405,<2",
   "pytest>=8.4,<10",
-  "pytest-cov>=7.1,<8",
   "ruff>=0.12,<1",
 ]
 
@@ -43,13 +42,6 @@ markers = [
   "db: needs the disposable PostgreSQL (tests/integration); skipped unless RUN_DB_INTEGRATION=1",
   "mutates_checkout_state: updates, cancels, completes or rewrites a persisted checkout, its order or creation evidence; deselect with -m 'not mutates_checkout_state'",
 ]
-
-[tool.coverage.run]
-source_pkgs = ["commerce_lab"]
-branch = true
-
-[tool.coverage.report]
-skip_empty = true
 
 [tool.pyright]
 include = ["src", "tests"]
