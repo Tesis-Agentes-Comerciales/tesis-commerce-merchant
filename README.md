@@ -17,7 +17,7 @@ El namespace Python sigue siendo `commerce_lab`.
 | `storefront/` | Vitrina React de solo consulta sobre `GET /storefront/catalog`; ver [su README](storefront/README.md). |
 | `scripts/` | `railway_bootstrap.py`, arranque del despliegue, y `catalog/`, recolectores de uso único del catálogo; ver [scripts/README.md](scripts/README.md). |
 | `assets/products/` | Fotos del catálogo y su procedencia (`PROVENANCE.md`). |
-| `docs/` | [Estrategia de pruebas](docs/testing.md), [auditoría HP/B2 de cancelación](docs/hp-b2-cancellation-audit-2026-10-17-v2.md) y reportes históricos en [archive](docs/archive/README.md). |
+| `docs/` | [Estrategia de pruebas](docs/testing.md). |
 
 ## Perfil P0 implementado
 
@@ -234,9 +234,6 @@ correr contra un PostgreSQL desechable.
 Feed API incremental no está implementada. `storefront/` es una vitrina de solo consulta, sin
 carrito ni checkout. El handler sandbox no procesa credenciales reales ni dinero real; este
 subconjunto no afirma conformidad ACP integral.
-
-Los reportes de ejecución de los tickets B2 (EC-MER-REC-01, EC-GOV-06D-A, EC-MER-07B-A y 07B-A2),
-corridos en Windows, están en [docs/archive](docs/archive/README.md) como registro histórico.
 
 ## Despliegue de la demo sintética
 
