@@ -13,7 +13,7 @@ from commerce_lab.acp import ACPCheckoutCreateRequest
 
 ROOT = Path(__file__).resolve().parents[2]
 VENDOR = ROOT / "vendor" / "acp"
-FIXTURES = ROOT / "src" / "commerce" / "fixtures" / "acp"
+FIXTURES = ROOT / "tests" / "fixtures" / "acp"
 
 
 def read_json(path: Path) -> dict[str, Any]:
