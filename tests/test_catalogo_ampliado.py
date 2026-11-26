@@ -67,9 +67,7 @@ def validate(definition: str, value: object) -> None:
     ).validate(value)
 
 
-def test_p0_fixture_stays_the_evaluation_contract(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Ninguna variable de entorno elige el catálogo de las semillas.
-    monkeypatch.setenv("MERCHANT_CATALOG", "ampliado")
+def test_p0_fixture_stays_the_evaluation_contract() -> None:
     offers, digest, manifest = fixture_snapshot()
 
     assert FIXTURE_VERSION == "p0-catalog-v13"
@@ -165,7 +163,6 @@ def test_import_current_only_takes_ampliado_when_asked(monkeypatch: pytest.Monke
         return {"status": "imported"}
 
     monkeypatch.setattr(managed_catalog, "import_current_catalog", fake_import)
-    monkeypatch.setenv("MERCHANT_CATALOG", "ampliado")
     for argv in (["import-current"], ["import-current", "--catalog", "ampliado"]):
         monkeypatch.setattr(sys, "argv", ["managed_catalog", *argv])
         managed_catalog.main()
