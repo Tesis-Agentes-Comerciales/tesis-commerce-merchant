@@ -1,100 +1,74 @@
-# Estrategia de pruebas
+# Pruebas
 
-Qué se prueba en el Merchant, dónde vive cada prueba, cuándo corre y cómo ejecutarla en local.
-Las pruebas de sistema que cruzan el Agent, este Merchant y el proveedor de pagos viven en el
-repositorio del Agent (`tests/integration`, capa 4 de su `docs/testing.md`).
+Cómo se verifica el comercio antes de integrar un cambio. Todo corre en local con
+`scripts/check.sh`. Las pruebas de sistema que cruzan el agente, este comercio y el proveedor de
+pagos viven en el repositorio del agente.
+
+## La compuerta
+
+```sh
+scripts/check.sh        # capa 1
+scripts/check.sh --db   # capas 1 y 2
+```
+
+Los pasos corren en este orden y la compuerta se detiene en el primer fallo:
+
+1. `uv lock --check`: el lock coincide con `pyproject.toml`.
+2. `uv run ruff format --check .` y `uv run ruff check .`: formato y lint.
+3. `uv run pyright`: tipos de `src/` y `tests/`.
+4. `uv run pytest -q`: pruebas unitarias y de contrato. `tests/integration/` se recoge y se omite.
+
+Con `--db`, además:
+
+5. Levanta el servicio `postgres-test` de `compose.yaml`: la misma imagen fijada que la base de
+   desarrollo, en el puerto 55434 (`MERCHANT_TEST_PG_PORT` lo cambia), con los datos en memoria y
+   sin volumen. Lo recrea en cada corrida, así que siempre empieza con una base vacía.
+6. Corre primero la prueba de migraciones, que necesita la base recién creada, y luego el resto de
+   `tests/integration/`.
+7. Al salir, con o sin error, apaga y quita el contenedor. La base de desarrollo (servicio
+   `postgres`, volumen `merchant_pgdata`) no se toca.
 
 ## Capas
 
-| Capa | Qué verifica | Dónde | Cuándo |
-| --- | --- | --- | --- |
-| 1. Unitarias y contratos | Catálogo, feed, ACP y AP2 (incluido el esquema ACP vendorizado), webhooks, cliente de pagos, API sin base | `tests/` sin `integration/` | Cada PR (`unit`) |
-| 2. PostgreSQL | Migraciones, checkout, completion, D17 (creación y lookup guardados), catálogo persistente y gestionado, entrega de webhooks, ACP por HTTP | `tests/integration/` | Cada PR (`integration`) |
-| Storefront | Lint y build con tipos | `storefront/` | Cada PR (`storefront`) |
+| Capa | Qué verifica | Dónde | Pruebas | Tiempo |
+| --- | --- | --- | --- | --- |
+| 1. Unitarias y contratos | Catálogo, feed, ACP y AP2 contra los esquemas congelados, webhooks, cliente de pagos y la API sin base | `tests/` sin `integration/` | 228 | ~2 s |
+| 2. PostgreSQL | Migraciones, checkout, completar, creación guardada y su consulta, recuperación de la creación, catálogo persistente y administrado, entrega de webhooks y ACP por HTTP | `tests/integration/` | 233 | ~90 s |
+
+En un Mac con Apple Silicon, `scripts/check.sh` tarda unos 5 s y `scripts/check.sh --db`, menos de
+dos minutos.
+
+## Cómo se separan
 
 `tests/conftest.py` marca todo `tests/integration/` con `db` y lo omite salvo con
-`RUN_DB_INTEGRATION=1`; un módulo nuevo en esa carpeta queda protegido sin `skipif` propio.
-`mutates_checkout_state` sigue marcando las pruebas que actualizan, cancelan, completan o
-reescriben un checkout persistido (ver el README).
+`RUN_DB_INTEGRATION=1`, así que un módulo nuevo en esa carpeta queda protegido sin `skipif`
+propio. Las pruebas de creación guardada y de recuperación exigen además `RECOVERY_TEST_CLUSTER`
+con el directorio de datos del clúster, y se niegan a correr sobre otro. `check.sh --db` fija esas
+dos variables y `DATABASE_URL`.
 
-## En local
-
-Capa 1, sin PostgreSQL:
-
-```sh
-uv run pytest
-```
-
-Capa 2, contra un PostgreSQL desechable y recién creado, nunca el volumen de desarrollo. Con la
-misma imagen y `PGDATA` del CI, en un puerto libre:
+El marcador `mutates_checkout_state` señala las pruebas que actualizan, cancelan, completan o
+reescriben un checkout, su orden o su evidencia de creación. Un filtro por nombre con `-k` no las
+excluye; para una selección parcial que no mute checkouts, combínelo con el marcador. Por ejemplo,
+contra la base de prueba:
 
 ```sh
-docker run -d --name merchant-test-pg -p 127.0.0.1:55499:5432 \
-  -e POSTGRES_USER=tesis_dev -e POSTGRES_PASSWORD=tesis_local_only -e POSTGRES_DB=tesis_lab \
-  -e PGDATA=/var/lib/postgresql/18/docker \
-  postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
-export DATABASE_URL=postgresql://tesis_dev:tesis_local_only@127.0.0.1:55499/tesis_lab \
-  RUN_DB_INTEGRATION=1 RECOVERY_TEST_CLUSTER=/var/lib/postgresql/18/docker
-uv run pytest tests/integration/test_migration_tracking.py   # primero: necesita la base vacía
-uv run pytest --ignore=tests/integration/test_migration_tracking.py
-docker rm --force --volumes merchant-test-pg
+docker compose --profile test up -d --wait --force-recreate postgres-test
+RUN_DB_INTEGRATION=1 RECOVERY_TEST_CLUSTER=/var/lib/postgresql/18/docker \
+  DATABASE_URL=postgresql://tesis_dev:tesis_local_only@127.0.0.1:55434/tesis_lab \
+  uv run pytest tests/integration -k lookup -m "not mutates_checkout_state"
+docker compose --profile test rm --stop --force postgres-test
 ```
 
-Las suites D17 rechazan cualquier clúster cuyo `data_directory` no sea `RECOVERY_TEST_CLUSTER`.
-
-La prueba de indisponibilidad INF31 se ejecuta explícitamente al final del job
-`integration`. Usa HTTP real y detiene únicamente el contenedor PostgreSQL
-desechable de ese job, después de comprobar el puerto y el directorio de datos.
-Comprueba el 503 nativo con `Request-Id` del servidor, reinicia PostgreSQL y
-contrasta los estados persistidos. El intento de auditoría durante la caída
-queda en el log del servicio, sin fila persistida. El job conserva JUnit y su
-SHA-256 y exige que el caso se ejecute y apruebe.
-
-La clasificación de INF31 cubre la negativa TCP observada al abrir la conexión
-para verificar la sesión. El diagnóstico de libpq carece de SQLSTATE en ese
-caso. Se reconoce la forma observada en el laboratorio en inglés. Los fallos
-de autenticación de la base, los diagnósticos ambiguos y los errores de consulta
-o transacción conservan el tratamiento anterior.
-La forma local de macOS que informa `could not receive data from server: Connection refused`
-también se reconoce solo durante la apertura de autenticación, sin reclasificar errores mixtos.
-
-Para repetir la capa 2, recree el contenedor: la prueba de migraciones solo pasa sobre una base
-vacía.
-
-## Workflow
-
-`ci.yml` corre en cada PR y en `main`, con `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` (`pytest-cov` se
-carga con `-p pytest_cov`):
-
-- `lint`: `ruff format --check`, `ruff check`, `pyright` y `uv build`.
-- `unit`: `uv run pytest` con cobertura; `tests/integration` se recoge y se omite.
-- `integration`: servicio PostgreSQL con la imagen fijada; la prueba de migraciones primero y
-  luego toda la suite (unitarias incluidas) en serie, con cobertura acumulada y umbral.
-- `storefront`: `npm ci`, `npm run lint` y `npm run build`. El storefront aún no tiene pruebas.
-
-Cada job de pruebas publica su tabla de cobertura en el resumen de la ejecución.
-
-## Cobertura
-
-Se mide con `pytest-cov` sobre `commerce_lab`, con ramas (`[tool.coverage.*]` en
-`pyproject.toml`). Línea base del 2026-10-20:
-
-| Selección | Pruebas | Tiempo | Cobertura | Líneas | Ramas |
-| --- | --- | --- | --- | --- | --- |
-| Capa 1 | 175 (226 omitidas) | ~3 s | 53.3 % | 58.9 % | 31.0 % |
-| Capas 1 y 2 | 401 | ~70 s | 87.0 % | 89.8 % | 75.7 % |
-
-El umbral del CI es 85 % sobre el total del job `integration`: la capa 1 sola no puede llegar
-porque casi todo el Merchant pasa por PostgreSQL, así que no lleva umbral propio.
+Aun así, toda la capa 2 crea corridas y checkouts y cambia el catálogo administrado: solo debe
+correr contra una base desechable como esta, nunca contra la de desarrollo.
 
 ## Al escribir una prueba
 
 - Lo que abra PostgreSQL va en `tests/integration/`; el resto no debe conectarse.
-- Escribir solo en `tmp_path` o en la base desechable, nunca en el checkout.
-- Fuera de la migración inicial, no depender del orden ni del estado que deje otra prueba de la
-  capa 2: cada una crea sus episodios y checkouts.
-- No medir tiempos con umbrales absolutos ni depender del día real sin tolerar el cambio de
-  fecha.
-- Fijar hashes solo de contratos congelados: el esquema ACP vendorizado en `vendor/acp`, que
-  verifica `tests/contracts/test_acp.py`, y el fixture P0 que siembran las evaluaciones
-  (`FIXTURE_VERSION`), que verifica `tests/test_catalogo_ampliado.py`.
+- Escribir solo en `tmp_path` o en la base desechable, nunca en el checkout del repositorio.
+- Fuera de la prueba de migraciones, no depender del orden ni del estado que deje otra prueba de
+  la capa 2: cada una crea sus corridas y checkouts.
+- No medir tiempos con umbrales absolutos ni depender del día real sin tolerar el cambio de fecha.
+- Fijar hashes solo de contratos congelados: los esquemas ACP de `vendor/acp`, que verifica
+  `tests/contracts/test_acp.py`, y el catálogo base que siembran las evaluaciones del agente, que
+  verifica `tests/test_catalogo_ampliado.py`.
